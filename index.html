@@ -1,0 +1,3340 @@
+<!DOCTYPE html>
+<!-- ╔══════════════════════════════════════════════════════════════════╗
+     ║  CODEX PRESENTATION — API KEY SETUP                           ║
+     ║                                                                ║
+     ║  To enable the "Ask Codex" AI chat feature:                   ║
+     ║  1. Find the line below:                                       ║
+     ║       'x-api-key': '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'              ║
+     ║  2. Replace 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 with your actual key  ║
+     ║     e.g.  'x-api-key': 'sk-ant-api03-...'                    ║
+     ║                                                                ║
+     ║  Search this file for: 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            ║
+     ║  There is exactly ONE place to update.                        ║
+     ╚══════════════════════════════════════════════════════════════════╝ -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CODEX — Your Digital Department Co-Pilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* ── Codex Brand Theme ── */
+  --bg:           #0e0b1e;          /* deep indigo/near-black */
+  --surface:      #16112e;          /* dark violet surface */
+  --surface2:     #1d1840;          /* slightly lighter surface */
+  --border:       #2e2655;          /* muted violet border */
+  --emerald:      #a78bfa;          /* brand violet (primary accent) */
+  --teal:         #818cf8;          /* indigo secondary */
+  --cyan:         #c4b5fd;          /* light violet highlight */
+  --emerald-dim:  #3b1f8c;          /* deep violet dim */
+  --emerald-glow: rgba(167,139,250,0.15);
+  --text:         #f0eeeb;          /* cream white — matches brand card */
+  --text-muted:   #9d92c4;          /* muted violet-grey */
+  --text-dim:     #5b527a;          /* dim violet */
+  --gold:         #fbbf24;          /* amber — kept for warnings */
+  --red:          #f87171;          /* soft red */
+  --blue:         #60a5fa;          /* blue — kept for info */
+  --slide-w: 100vw;
+  --slide-h: 100vh;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  cursor: default;
+}
+
+/* ── SLIDE ENGINE ── */
+.deck { width:100%; height:100%; position:relative; }
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 5%;
+  opacity: 0;
+  transform: translateY(30px);
+  pointer-events: none;
+  transition: opacity 1.2s cubic-bezier(.4,0,.2,1), transform 1.2s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+}
+.slide.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+.slide.exit {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+/* ── GRID BG ── */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(139,92,246,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,92,246,.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: .4;
+}
+
+/* ── NAVIGATION ── */
+#nav {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 100;
+  background: rgba(14,11,30,.92);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: .6rem 1.4rem;
+  backdrop-filter: blur(16px);
+}
+#nav button {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all .2s;
+  display: flex; align-items: center; justify-content: center;
+}
+#nav button:hover { border-color: var(--emerald); color: var(--emerald); background: rgba(139,92,246,.1); }
+#slide-counter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .78rem;
+  color: var(--text-muted);
+  min-width: 52px;
+  text-align: center;
+}
+.progress-dots {
+  display: flex; gap: .35rem;
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  cursor: pointer;
+  transition: all .2s;
+}
+.dot.active { background: var(--emerald); transform: scale(1.4); box-shadow: 0 0 6px rgba(167,139,250,.7); }
+
+/* ── SLIDE COUNTER BADGE ── */
+.slide-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .7rem;
+  color: var(--text-dim);
+  position: absolute;
+  top: 1.5rem;
+  right: 2rem;
+  letter-spacing: .08em;
+}
+
+/* ── SECTION LABEL ── */
+.section-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .68rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: rgba(167,139,250,.12);
+  border: 1px solid rgba(167,139,250,.3);
+  border-radius: 4px;
+  padding: .25rem .8rem;
+  display: inline-block;
+  margin-bottom: 1.2rem;
+}
+
+/* ── TYPOGRAPHY ── */
+h1.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  font-weight: 800;
+  line-height: .95;
+  letter-spacing: -.03em;
+  color: var(--text);
+}
+h1.hero-title span { color: var(--emerald); }
+
+h2.slide-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: .5rem;
+}
+h2.slide-title span { color: var(--emerald); }
+
+h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: .4rem;
+}
+
+p.lead {
+  font-size: clamp(.95rem, 1.5vw, 1.15rem);
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 62ch;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(139,92,246,.07) 0%, transparent 60%);
+  pointer-events: none;
+}
+.card-accent {
+  border-color: rgba(139,92,246,.45);
+}
+.card-gold { border-color: rgba(245,158,11,.35); }
+.card-blue { border-color: rgba(59,130,246,.35); }
+.card-red  { border-color: rgba(239,68,68,.35);  }
+
+/* ── GRID LAYOUTS ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; width: 100%; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; width: 100%; }
+
+/* ── ICON CIRCLES ── */
+.icon-circle {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: .8rem;
+  flex-shrink: 0;
+}
+.ic-emerald { background: rgba(139,92,246,.15); border: 1px solid rgba(139,92,246,.35); }
+.ic-gold    { background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3); }
+.ic-blue    { background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.3); }
+.ic-red     { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.3);  }
+
+/* ── STAT BOX ── */
+.stat-box { text-align: center; }
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  color: var(--emerald);
+  display: block;
+  line-height: 1;
+}
+.stat-label {
+  font-size: .82rem;
+  color: var(--text-muted);
+  margin-top: .3rem;
+  display: block;
+}
+
+/* ── PROCESS FLOW ── */
+.flow-node {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: .8rem 1.2rem;
+  text-align: center;
+  font-size: .85rem;
+  font-weight: 500;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.flow-node.active-node {
+  border-color: var(--emerald);
+  background: var(--emerald-glow);
+  box-shadow: 0 0 20px rgba(139,92,246,.3);
+}
+.flow-arrow {
+  color: var(--text-dim);
+  font-size: 1.2rem;
+  display: flex; align-items: center;
+  flex-shrink: 0;
+}
+.flow-row {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  width: 100%;
+}
+
+/* ── TRANSACTION PACKET ── */
+#txn-packet {
+  position: absolute;
+  width: 36px; height: 22px;
+  background: var(--emerald);
+  border-radius: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0;
+  transition: left 1.2s cubic-bezier(.4,0,.2,1), background .4s;
+  z-index: 10;
+  box-shadow: 0 0 12px rgba(139,92,246,.7);
+}
+#txn-packet.flagged { background: var(--gold); box-shadow: 0 0 12px rgba(245,158,11,.6); }
+#txn-packet.approved { background: var(--emerald); box-shadow: 0 0 16px rgba(139,92,246,.9); }
+
+/* ── CHARTS ── */
+.chart-container {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+/* ── PLUGIN/AGENT CARDS ── */
+.tool-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(6,182,212,.1);
+  border: 1px solid rgba(6,182,212,.3);
+  border-radius: 6px;
+  padding: .2rem .6rem;
+  font-size: .72rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--cyan);
+  margin: .2rem .1rem;
+}
+.agent-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(139,92,246,.1);
+  border: 1px solid rgba(139,92,246,.3);
+  border-radius: 6px;
+  padding: .2rem .6rem;
+  font-size: .72rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: #a78bfa;
+  margin: .2rem .1rem;
+}
+
+/* ── TIMELINE ── */
+.timeline-item {
+  display: flex;
+  gap: 1rem;
+  padding-left: .5rem;
+  position: relative;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 24px;
+  bottom: -1rem;
+  width: 1px;
+  background: var(--border);
+}
+.timeline-item:last-child::before { display: none; }
+.timeline-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--emerald);
+  margin-top: 6px;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(16,185,129,.5);
+}
+
+/* ── GOVERNANCE TABLE ── */
+.gov-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+.gov-row:last-child { border-bottom: none; }
+.gov-cell {
+  padding: .75rem 1rem;
+  font-size: .82rem;
+  border-right: 1px solid var(--border);
+}
+.gov-cell:last-child { border-right: none; }
+.gov-header .gov-cell {
+  background: var(--surface2);
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: .78rem;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+}
+.green-cell { color: var(--emerald); }
+.gold-cell  { color: var(--gold); }
+
+/* ── GLOWING LINE ── */
+.glow-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--emerald), var(--teal), transparent);
+  width: 100%;
+  opacity: .4;
+  margin: 1rem 0;
+}
+
+/* ── ANIMATED PULSE RING ── */
+.pulse-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(139,92,246,.35);
+  animation: pulse-out 2.5s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes pulse-out {
+  0%   { transform: scale(.8); opacity: .8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* ── CODEX LOGO ── */
+.codex-logo {
+  position: fixed;
+  top: 1.2rem;
+  left: 1.8rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.codex-logo-text {
+  font-family: 'Syne', sans-serif;
+  font-size: .85rem;
+  font-weight: 800;
+  letter-spacing: .3em;
+  color: #f0eeeb;
+  text-transform: none;
+}
+.codex-logo .dot-logo {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 10px rgba(167,139,250,.9);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── HIGHLIGHT BOX ── */
+.highlight-box {
+  background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(99,102,241,.05));
+  border: 1px solid rgba(139,92,246,.3);
+  border-radius: 12px;
+  padding: 1rem 1.4rem;
+}
+
+/* ── QUOTE ── */
+.big-quote {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.3rem, 2.5vw, 1.9rem);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+  position: relative;
+  padding-left: 1.5rem;
+}
+.big-quote::before {
+  content: '"';
+  position: absolute;
+  left: 0;
+  top: -.2rem;
+  font-size: 3rem;
+  color: var(--emerald);
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+
+/* ── LIST ── */
+.check-list { list-style: none; display: flex; flex-direction: column; gap: .6rem; }
+.check-list li {
+  display: flex; align-items: flex-start; gap: .6rem;
+  font-size: .9rem; color: var(--text-muted);
+}
+.check-list li::before {
+  content: '▸';
+  color: var(--emerald);
+  font-size: .75rem;
+  margin-top: .15rem;
+  flex-shrink: 0;
+}
+
+/* ── SCANLINE ON HERO ── */
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+.scanline {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(16,185,129,.2), transparent);
+  animation: scanline 6s linear infinite;
+  pointer-events: none;
+}
+
+/* ── SCROLL WITHIN SLIDE ── */
+.slide-scroll {
+  overflow-y: auto;
+  max-height: calc(100vh - 10rem);
+  width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* ── USE CASE TABS ── */
+.tab-bar { display: flex; gap: .5rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+.tab-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 8px;
+  padding: .5rem 1.1rem;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.tab-btn.active { background: var(--emerald-glow); border-color: var(--emerald); color: var(--emerald); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── COMPARISON TABLE ── */
+.comp-table { width: 100%; border-collapse: collapse; }
+.comp-table th, .comp-table td { padding: .7rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.comp-table th { font-family: 'Syne', sans-serif; font-size: .75rem; letter-spacing: .06em; color: var(--text-dim); text-transform: uppercase; }
+.comp-table tr:last-child td { border-bottom: none; }
+
+/* ── DOUGHNUT ── */
+.doughnut-legend { display: flex; flex-direction: column; gap: .5rem; }
+.legend-item { display: flex; align-items: center; gap: .6rem; font-size: .82rem; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── GRADIENT TEXT ── */
+.grad-text {
+  background: linear-gradient(135deg, var(--emerald), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── SPEAKER NOTES TOGGLE ── */
+#notes-toggle {
+  position: fixed;
+  top: 1.4rem;
+  right: 2rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 8px;
+  padding: .4rem .9rem;
+  font-size: .75rem;
+  cursor: pointer;
+  z-index: 100;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all .2s;
+}
+#notes-toggle:hover { border-color: var(--emerald); color: var(--emerald); }
+#speaker-notes {
+  position: fixed;
+  bottom: 5.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(14,11,30,.97);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  max-width: 700px;
+  width: 90%;
+  font-size: .8rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  z-index: 99;
+  display: none;
+  backdrop-filter: blur(16px);
+}
+#speaker-notes.visible { display: block; }
+#speaker-notes strong { color: var(--gold); }
+
+/* ── FLOATING PARTICLES ── */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--emerald);
+  opacity: .12;
+  animation: float-p 8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes float-p {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-30px) rotate(180deg); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .slide { padding: 2rem 4%; }
+  .flow-row { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="noise-overlay"></div>
+
+<!-- LOGO -->
+<div class="codex-logo" onclick="goTo(0)" title="Return to start">
+  <svg width="38" height="38" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Cream/off-white card background like the real logo -->
+      <!-- Blue-purple radial gradient for the blob — matches the brand image -->
+      <radialGradient id="blob-grad" cx="45%" cy="35%" r="65%" gradientUnits="objectBoundingBox">
+        <stop offset="0%" stop-color="#a78bfa"/>
+        <stop offset="40%" stop-color="#6d44f0"/>
+        <stop offset="100%" stop-color="#3730a3"/>
+      </radialGradient>
+      <!-- Subtle inner highlight on blob -->
+      <radialGradient id="blob-hi" cx="35%" cy="25%" r="45%" gradientUnits="objectBoundingBox">
+        <stop offset="0%" stop-color="#c4b5fd" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="#c4b5fd" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <!-- Card: cream/white rounded square with subtle shadow -->
+    <rect width="200" height="200" rx="46" fill="#f0eeeb"/>
+    <rect width="200" height="200" rx="46" fill="url(#card-shadow)" opacity="0.05"/>
+    <!-- Cloud blob shape — organic rounded pentagon like the real logo -->
+    <path d="M100 38
+             C115 38 128 44 137 54
+             C147 50 159 54 165 64
+             C175 68 180 80 177 92
+             C182 100 182 112 176 121
+             C176 134 168 145 157 150
+             C152 162 140 168 128 166
+             C120 174 108 176 97 172
+             C85 176 73 170 67 160
+             C55 158 46 148 44 136
+             C33 130 27 118 30 106
+             C26 95 30 82 38 74
+             C38 61 47 50 58 45
+             C68 38 85 35 100 38Z"
+          fill="url(#blob-grad)"/>
+    <!-- Highlight overlay on blob -->
+    <path d="M100 38
+             C115 38 128 44 137 54
+             C147 50 159 54 165 64
+             C175 68 180 80 177 92
+             C182 100 182 112 176 121
+             C176 134 168 145 157 150
+             C152 162 140 168 128 166
+             C120 174 108 176 97 172
+             C85 176 73 170 67 160
+             C55 158 46 148 44 136
+             C33 130 27 118 30 106
+             C26 95 30 82 38 74
+             C38 61 47 50 58 45
+             C68 38 85 35 100 38Z"
+          fill="url(#blob-hi)"/>
+    <!-- >_ terminal prompt symbol in white — exactly like the logo image -->
+    <!-- Chevron > -->
+    <path d="M68 88 L90 105 L68 122" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- Underscore/dash _ -->
+    <line x1="100" y1="122" x2="132" y2="122" stroke="white" stroke-width="12" stroke-linecap="round"/>
+  </svg>
+  <span class="codex-logo-text">Codex</span>
+</div>
+
+<!-- NOTES TOGGLE -->
+<button id="notes-toggle" onclick="toggleNotes()">📋 Speaker Notes</button>
+<div id="speaker-notes"></div>
+
+<!-- DECK -->
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 01 · HERO -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s1" data-notes="Welcome everyone. Today we're introducing CODEX — a concept that will change how our Finance and Accounting teams work. This isn't about replacing jobs. It's about giving each of you a co-pilot that handles the routine so you can focus on the analysis that matters. We have about 60 minutes together. Let's make it count.">
+  <div class="scanline"></div>
+  <div class="particle" style="width:120px;height:120px;top:10%;left:5%;animation-delay:0s"></div>
+  <div class="particle" style="width:60px;height:60px;top:70%;right:8%;animation-delay:2s"></div>
+  <div class="particle" style="width:80px;height:80px;top:40%;right:2%;animation-delay:4s"></div>
+
+  <div style="text-align:center;z-index:1;max-width:900px">
+    <div class="section-tag" style="margin-bottom:2rem">AI CO-PILOT · 2025</div>
+
+    <h1 class="hero-title" style="margin-bottom:1.5rem">
+      MEET<br><span>CODEX</span>
+    </h1>
+
+    <p style="font-size:clamp(1.1rem,2vw,1.5rem);color:var(--text-muted);font-weight:300;margin-bottom:2.5rem;letter-spacing:-.01em">
+      Your AI Co-Pilot for Finance, Planning & Billing
+    </p>
+
+    <div class="glow-line" style="max-width:400px;margin:0 auto 2.5rem"></div>
+
+    <div style="display:flex;gap:3rem;justify-content:center;flex-wrap:wrap">
+      <div class="stat-box">
+        <span class="stat-num">60%</span>
+        <span class="stat-label">Routine Tasks Automated</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">3×</span>
+        <span class="stat-label">Faster Report Generation</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">100%</span>
+        <span class="stat-label">Human Oversight Retained</span>
+      </div>
+    </div>
+
+    <p style="font-size:.8rem;color:var(--text-dim);margin-top:2.5rem;font-family:'JetBrains Mono',monospace">
+      Press → or click ▶ to advance
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 02 · AGENDA -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s2" data-notes="Here's our roadmap for the hour. We'll start with the big picture — what Codex is — then get into how it works with Tools vs Specialists. The middle section covers real examples from your actual work. We end with governance: how humans stay in control. Every section has live demos and interactive charts.">
+  <div style="width:100%;max-width:1000px;z-index:1">
+    <div class="section-tag">SESSION ROADMAP</div>
+    <h2 class="slide-title">What We'll <span>Cover Today</span></h2>
+    <p class="lead" style="margin-bottom:2rem">60 minutes · 12 slides · Real examples from your workflow</p>
+
+    <div class="grid-2" style="gap:1rem">
+      <div class="card card-accent" style="padding:1.2rem">
+        <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1rem">
+          <div class="icon-circle ic-emerald">🧭</div>
+          <div>
+            <div style="font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.1em">SECTION 1 · 10 MIN</div>
+            <h3 style="margin:0">The Big Picture</h3>
+          </div>
+        </div>
+        <ul class="check-list">
+          <li>What is an AI Co-Pilot?</li>
+          <li>Why Finance teams need Codex now</li>
+          <li>Tools vs. Specialists framework</li>
+        </ul>
+      </div>
+
+      <div class="card card-accent" style="padding:1.2rem">
+        <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1rem">
+          <div class="icon-circle ic-blue">⚙️</div>
+          <div>
+            <div style="font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.1em">SECTION 2 · 15 MIN</div>
+            <h3 style="margin:0">How It Works</h3>
+          </div>
+        </div>
+        <ul class="check-list">
+          <li>Plugins (Tools) — the connectors</li>
+          <li>Agents — the specialists</li>
+          <li>Live transaction flow demo</li>
+        </ul>
+      </div>
+
+      <div class="card card-gold" style="padding:1.2rem">
+        <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1rem">
+          <div class="icon-circle ic-gold">📊</div>
+          <div>
+            <div style="font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.1em">SECTION 3 · 20 MIN</div>
+            <h3 style="margin:0">Your Use Cases</h3>
+          </div>
+        </div>
+        <ul class="check-list">
+          <li>Audit Readiness automation</li>
+          <li>Budget Variance analysis</li>
+          <li>Automated Billing follow-ups</li>
+        </ul>
+      </div>
+
+      <div class="card card-blue" style="padding:1.2rem">
+        <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1rem">
+          <div class="icon-circle ic-blue">🛡️</div>
+          <div>
+            <div style="font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.1em">SECTION 4 · 15 MIN</div>
+            <h3 style="margin:0">Governance & Control</h3>
+          </div>
+        </div>
+        <ul class="check-list">
+          <li>Human-in-the-Loop framework</li>
+          <li>Approval gates & audit trails</li>
+          <li>What Codex NEVER does alone</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 03 · WHAT IS CODEX -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s3" data-notes="Think of Codex as the difference between you doing a calculation on paper versus using a calculator. The calculator doesn't replace your accounting knowledge — it eliminates the tedium so you can focus on what the numbers mean. Codex does the same thing but at department scale.">
+  <div style="width:100%;max-width:1000px;z-index:1">
+    <div class="section-tag">SECTION 1 · THE BIG PICTURE</div>
+    <h2 class="slide-title">What <span>Exactly</span> is Codex?</h2>
+
+    <div class="grid-2" style="margin-top:1.5rem;align-items:start">
+      <div>
+        <div class="big-quote" style="margin-bottom:1.5rem">
+          An AI co-pilot is not a robot that replaces you. It's a brilliant assistant that never sleeps, never forgets, and never misfiles a document.
+        </div>
+        <div class="highlight-box">
+          <p style="font-size:.9rem;color:var(--text-muted);line-height:1.7">
+            Codex sits inside your existing systems — your accounting software, your email, your spreadsheets — and handles the <strong style="color:var(--text)">mechanical, repetitive work</strong> so you can focus on <strong style="color:var(--emerald)">judgment, strategy, and relationships</strong>.
+          </p>
+        </div>
+
+        <div style="margin-top:1.5rem">
+          <p style="font-size:.8rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.1em;margin-bottom:.7rem">WHAT CODEX IS NOT</p>
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--text-muted)">
+              <span style="color:var(--red);font-size:1rem">✕</span> Not a replacement for your professional judgment
+            </div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--text-muted)">
+              <span style="color:var(--red);font-size:1rem">✕</span> Not a system that acts without human approval
+            </div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--text-muted)">
+              <span style="color:var(--red);font-size:1rem">✕</span> Not a threat to your position or expertise
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="card card-accent">
+          <div style="display:flex;align-items:center;gap:.8rem">
+            <div class="icon-circle ic-emerald">🧮</div>
+            <div>
+              <h3>Your Calculator Analogy</h3>
+              <p style="font-size:.82rem;color:var(--text-muted)">Calculators didn't replace accountants — they made accountants more powerful. Codex is your department-scale calculator.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-accent">
+          <div style="display:flex;align-items:center;gap:.8rem">
+            <div class="icon-circle ic-emerald">✈️</div>
+            <div>
+              <h3>The Co-Pilot Metaphor</h3>
+              <p style="font-size:.82rem;color:var(--text-muted)">Pilots still fly planes — autopilot handles routine altitude. You still own the analysis; Codex handles the data gathering.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-accent">
+          <div style="display:flex;align-items:center;gap:.8rem">
+            <div class="icon-circle ic-emerald">⏱️</div>
+            <div>
+              <h3>Time Reclaimed</h3>
+              <p style="font-size:.82rem;color:var(--text-muted)">Finance teams spend up to <strong style="color:var(--emerald)">40% of their week</strong> on data gathering and formatting. Codex reclaims that time for you.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 04 · TOOLS VS SPECIALISTS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s4" data-notes="This is the core framework. Think of Plugins as your office equipment — the calculator, the printer, the email system. They do specific tasks on command. Agents are more like specialist consultants — they can think through multi-step problems, make decisions within boundaries you set, and come back to you with results. Both report to you.">
+  <div style="width:100%;max-width:1050px;z-index:1">
+    <div class="section-tag">SECTION 2 · HOW IT WORKS</div>
+    <h2 class="slide-title">Tools <span>vs.</span> Specialists</h2>
+    <p class="lead" style="margin-bottom:1.8rem">The two types of AI capability in Codex — and when each applies</p>
+
+    <div class="grid-2">
+      <!-- PLUGINS -->
+      <div class="card" style="border-color:rgba(6,182,212,.4);position:relative;overflow:visible">
+        <div style="position:absolute;top:-12px;left:1.5rem;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.4);border-radius:6px;padding:.2rem .8rem;font-size:.72rem;font-family:'JetBrains Mono',monospace;color:var(--cyan)">PLUGINS · TOOLS</div>
+        <div style="margin-top:.8rem">
+          <div class="icon-circle ic-blue" style="background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.3);width:56px;height:56px;font-size:1.6rem">🔌</div>
+          <h3 style="font-size:1.25rem;margin-bottom:.4rem">The <span style="color:var(--cyan)">Office Equipment</span></h3>
+          <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.6">
+            Plugins connect Codex to your existing systems. They perform <em>specific, single actions</em> on command — like a calculator that only does what you ask.
+          </p>
+          <div style="margin-bottom:.8rem">
+            <p style="font-size:.72rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.1em;margin-bottom:.4rem">EXAMPLES IN YOUR DEPARTMENT</p>
+            <div>
+              <span class="tool-tag">📧 Send Email</span>
+              <span class="tool-tag">📄 Fetch Invoice</span>
+              <span class="tool-tag">📊 Pull GL Data</span>
+              <span class="tool-tag">📅 Check Calendar</span>
+              <span class="tool-tag">🔍 Search ERP</span>
+              <span class="tool-tag">📋 Update Cell</span>
+            </div>
+          </div>
+          <div class="highlight-box" style="background:rgba(6,182,212,.06);border-color:rgba(6,182,212,.2)">
+            <p style="font-size:.8rem;color:var(--text-muted)">
+              <strong style="color:var(--cyan)">Analogy:</strong> Your calculator. You press the buttons. It computes. It never acts on its own.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AGENTS -->
+      <div class="card" style="border-color:rgba(139,92,246,.4);position:relative;overflow:visible">
+        <div style="position:absolute;top:-12px;left:1.5rem;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.4);border-radius:6px;padding:.2rem .8rem;font-size:.72rem;font-family:'JetBrains Mono',monospace;color:#a78bfa">AGENTS · SPECIALISTS</div>
+        <div style="margin-top:.8rem">
+          <div class="icon-circle" style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);width:56px;height:56px;font-size:1.6rem">🧠</div>
+          <h3 style="font-size:1.25rem;margin-bottom:.4rem">The <span style="color:#a78bfa">Specialist Consultant</span></h3>
+          <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.6">
+            Agents handle <em>multi-step tasks</em> that require thinking. They use multiple tools in sequence, make decisions, and return a completed result for your review.
+          </p>
+          <div style="margin-bottom:.8rem">
+            <p style="font-size:.72rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.1em;margin-bottom:.4rem">EXAMPLES IN YOUR DEPARTMENT</p>
+            <div>
+              <span class="agent-tag">🔎 Variance Investigator</span>
+              <span class="agent-tag">📑 Audit Pack Builder</span>
+              <span class="agent-tag">💌 Billing Chaser</span>
+              <span class="agent-tag">📈 Forecast Modeller</span>
+              <span class="agent-tag">⚠️ Risk Flagging</span>
+            </div>
+          </div>
+          <div class="highlight-box" style="background:rgba(139,92,246,.06);border-color:rgba(139,92,246,.2)">
+            <p style="font-size:.8rem;color:var(--text-muted)">
+              <strong style="color:#a78bfa">Analogy:</strong> A trusted temp who does the research, prepares the report, and puts it on your desk — awaiting your signature.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:1rem;text-align:center">
+      <p style="font-size:.85rem;color:var(--text-dim)">Both report to <strong style="color:var(--text)">you</strong>. Neither acts without boundaries you set.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 05 · TRANSACTION FLOW DEMO -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s5" data-notes="Let's watch a real transaction move through the system. Click the Start button. Watch the coloured packet travel through each stage. When it hits a yellow Review flag, that's where YOU come in. No transaction gets through to approval without a human touchpoint. This is what Human-in-the-Loop looks like in practice.">
+  <div style="width:100%;max-width:1000px;z-index:1">
+    <div class="section-tag">SECTION 2 · LIVE DEMO</div>
+    <h2 class="slide-title">Transaction <span>Flow</span> Simulation</h2>
+    <p class="lead" style="margin-bottom:1.5rem">Watch an invoice move from receipt to approved payment — AI-assisted, human-controlled</p>
+
+    <!-- FLOW DIAGRAM -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.8rem;position:relative;overflow:hidden">
+      <div class="flow-row" id="flow-row" style="margin-bottom:1.5rem;position:relative">
+        <div class="flow-node" id="fn1">
+          <div style="font-size:1.2rem;margin-bottom:.3rem">📥</div>
+          <div style="font-weight:600;font-size:.82rem">Invoice Received</div>
+          <div style="font-size:.72rem;color:var(--text-dim);margin-top:.2rem">ERP / Email</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" id="fn2">
+          <div style="font-size:1.2rem;margin-bottom:.3rem">🤖</div>
+          <div style="font-weight:600;font-size:.82rem">AI Extraction</div>
+          <div style="font-size:.72rem;color:var(--text-dim);margin-top:.2rem">Codex Plugin</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" id="fn3">
+          <div style="font-size:1.2rem;margin-bottom:.3rem">🔍</div>
+          <div style="font-weight:600;font-size:.82rem">Validation</div>
+          <div style="font-size:.72rem;color:var(--text-dim);margin-top:.2rem">Rules Engine</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" id="fn4">
+          <div style="font-size:1.2rem;margin-bottom:.3rem">⚠️</div>
+          <div style="font-weight:600;font-size:.82rem">Human Review</div>
+          <div style="font-size:.72rem;color:var(--gold);margin-top:.2rem;font-weight:600">← YOU ARE HERE</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" id="fn5">
+          <div style="font-size:1.2rem;margin-bottom:.3rem">✅</div>
+          <div style="font-weight:600;font-size:.82rem">Approved</div>
+          <div style="font-size:.72rem;color:var(--text-dim);margin-top:.2rem">GL Posted</div>
+        </div>
+
+        <!-- Moving packet -->
+        <div id="txn-packet"></div>
+      </div>
+
+      <!-- Status bar -->
+      <div id="flow-status" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-size:.82rem;color:var(--text-muted);min-height:44px;display:flex;align-items:center;gap:.6rem;margin-bottom:1rem">
+        <span id="status-icon">💤</span>
+        <span id="status-text">Ready to simulate. Press Start to watch a transaction.</span>
+      </div>
+
+      <div style="display:flex;gap:.8rem;align-items:center;flex-wrap:wrap">
+        <button onclick="runFlowDemo()" id="flow-btn" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:#fff;border-radius:8px;padding:.6rem 1.4rem;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">▶ Start Demo</button>
+        <div id="flow-flags" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
+      </div>
+    </div>
+
+    <!-- What Codex did -->
+    <div class="grid-3" style="margin-top:1rem">
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:.4rem">⚡</div>
+        <div style="font-size:.82rem;font-weight:600;margin-bottom:.3rem">AI Did</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">Read & extracted 14 data fields in 0.3 seconds</div>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:.4rem">🚦</div>
+        <div style="font-size:.82rem;font-weight:600;margin-bottom:.3rem">AI Flagged</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">Amount 12% above PO — requires human review</div>
+      </div>
+      <div class="card card-accent" style="padding:1rem;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:.4rem">🧑‍💼</div>
+        <div style="font-size:.82rem;font-weight:600;margin-bottom:.3rem;color:var(--emerald)">You Decide</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">Approve, reject, or query. Final authority = you.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 06 · SECTION DIVIDER — APPS & PLUGINS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s6" data-notes="We're now moving into one of the most practical sections — how ChatGPT connects to the apps and systems you already use every day. The question we're answering: how do you extend an AI conversation beyond just text into actually doing things inside your tools?">
+  <div class="scanline"></div>
+  <div class="particle" style="width:140px;height:140px;top:8%;left:3%;animation-delay:0s"></div>
+  <div class="particle" style="width:70px;height:70px;bottom:12%;right:6%;animation-delay:2.5s"></div>
+  <div style="text-align:center;z-index:1;max-width:820px">
+    <div style="display:inline-flex;align-items:center;gap:1rem;margin-bottom:2rem">
+      <div style="width:1px;height:40px;background:linear-gradient(to bottom,transparent,var(--emerald))"></div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--emerald);letter-spacing:.25em;text-transform:uppercase">SECTION 3</span>
+      <div style="width:1px;height:40px;background:linear-gradient(to bottom,var(--emerald),transparent)"></div>
+    </div>
+    <h1 class="hero-title" style="font-size:clamp(2.6rem,6vw,5.2rem);margin-bottom:1.2rem;line-height:1">Using Apps &amp;<br><span>Plugins</span></h1>
+    <p style="font-size:clamp(1rem,1.8vw,1.3rem);color:var(--text-muted);font-weight:300;margin-bottom:2.5rem;line-height:1.7;max-width:56ch;margin-left:auto;margin-right:auto">
+      How to extend workflows with apps, plugins and<br>connected tools inside <strong style="color:var(--text)">ChatGPT</strong>
+    </p>
+    <div class="glow-line" style="max-width:480px;margin:0 auto 2.5rem"></div>
+    <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem">🔌</div>
+        <span style="font-size:.78rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:.06em">PLUGINS</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem">🧩</div>
+        <span style="font-size:.78rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:.06em">GPT STORE</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem">⚡</div>
+        <span style="font-size:.78rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:.06em">ACTIONS</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem">🔗</div>
+        <span style="font-size:.78rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:.06em">CONNECTED TOOLS</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 07 · WHAT ARE PLUGINS & HOW THEY WORK -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s7" data-notes="A plugin is a bridge. ChatGPT on its own cannot see your live data, send an email, or pull today's invoice list. Plugins give it hands. When you activate a plugin you are telling ChatGPT: you now have permission to reach into THIS system. Think of it like installing an app on your phone — dormant until you open it, and you control which apps are installed.">
+  <div style="width:100%;max-width:1060px;z-index:1">
+    <div class="section-tag">SECTION 3 · APPS &amp; PLUGINS</div>
+    <h2 class="slide-title">What Are <span>Plugins</span> &amp; How Do They Work?</h2>
+    <p class="lead" style="margin-bottom:1.4rem">Giving ChatGPT hands — the ability to reach into your real systems</p>
+    <div class="grid-2" style="align-items:start;gap:1.2rem">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="card card-accent" style="padding:1.2rem">
+          <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.7rem">
+            <div class="icon-circle ic-emerald" style="font-size:1.4rem;width:48px;height:48px">🧠</div>
+            <div><h3 style="margin:0">Without a Plugin</h3><p style="font-size:.73rem;color:var(--text-dim)">ChatGPT in isolation</p></div>
+          </div>
+          <p style="font-size:.82rem;color:var(--text-muted);line-height:1.65">ChatGPT knows a great deal from its training — but it <strong style="color:var(--text)">cannot see your live data</strong>. It can't check today's AR balance, send an email, or look up Invoice #1842. Brilliant but <em style="color:var(--gold)">disconnected</em>.</p>
+        </div>
+        <div class="card" style="padding:1.1rem">
+          <p style="font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.1em;margin-bottom:.7rem;text-transform:uppercase">The Plugin Bridge</p>
+          <svg viewBox="0 0 420 88" style="width:100%;height:88px">
+            <rect x="4" y="23" width="98" height="42" rx="7" fill="#112228" stroke="#1e3a40" stroke-width="1"/>
+            <text x="53" y="41" text-anchor="middle" fill="#e2f0ee" font-size="9" font-family="Syne" font-weight="700">ChatGPT</text>
+            <text x="53" y="55" text-anchor="middle" fill="#7a9e9b" font-size="7.5" font-family="DM Sans">AI Brain</text>
+            <line x1="102" y1="44" x2="148" y2="44" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <polygon points="148,40 156,44 148,48" fill="#a78bfa"/>
+            <text x="127" y="38" text-anchor="middle" fill="#10b981" font-size="7" font-family="JetBrains Mono">request</text>
+            <rect x="156" y="18" width="112" height="52" rx="7" fill="rgba(6,182,212,.1)" stroke="rgba(6,182,212,.35)" stroke-width="1.5"/>
+            <text x="212" y="38" text-anchor="middle" fill="#06b6d4" font-size="9" font-family="Syne" font-weight="700">🔌 Plugin</text>
+            <text x="212" y="51" text-anchor="middle" fill="#7a9e9b" font-size="7.5" font-family="DM Sans">Translator / Bridge</text>
+            <text x="212" y="62" text-anchor="middle" fill="#4a706d" font-size="7" font-family="JetBrains Mono">auth + routing</text>
+            <line x1="268" y1="44" x2="308" y2="44" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <polygon points="308,40 316,44 308,48" fill="#a78bfa"/>
+            <text x="288" y="38" text-anchor="middle" fill="#10b981" font-size="7" font-family="JetBrains Mono">API call</text>
+            <rect x="316" y="14" width="100" height="62" rx="7" fill="#112228" stroke="#1e3a40" stroke-width="1"/>
+            <text x="366" y="33" text-anchor="middle" fill="#e2f0ee" font-size="8.5" font-family="Syne" font-weight="700">Your Systems</text>
+            <text x="366" y="46" text-anchor="middle" fill="#10b981" font-size="7.5" font-family="DM Sans">ERP / Email</text>
+            <text x="366" y="58" text-anchor="middle" fill="#7a9e9b" font-size="7.5" font-family="DM Sans">Spreadsheets</text>
+            <text x="366" y="69" text-anchor="middle" fill="#7a9e9b" font-size="7.5" font-family="DM Sans">Calendar</text>
+            <path d="M316 70 Q212 84 156 70" fill="none" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="3,3"/>
+            <polygon points="156,66 148,70 156,74" fill="#f59e0b"/>
+            <text x="234" y="84" text-anchor="middle" fill="#f59e0b" font-size="7" font-family="JetBrains Mono">live data returned to ChatGPT</text>
+          </svg>
+        </div>
+        <div class="highlight-box" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)">
+          <div style="display:flex;align-items:flex-start;gap:.6rem">
+            <span style="font-size:1.1rem;flex-shrink:0">🔐</span>
+            <div>
+              <p style="font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:.25rem">The Golden Rule</p>
+              <p style="font-size:.76rem;color:var(--text-muted);line-height:1.6"><strong style="color:var(--red)">You decide what's connected.</strong> ChatGPT cannot reach any system unless you or IT has explicitly authorised that plugin. Your data is only accessible to tools you deliberately unlock.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="card" style="padding:1.2rem">
+          <h3 style="margin-bottom:.9rem">Three Types of Plugin — Finance Examples</h3>
+          <div style="margin-bottom:.9rem;padding-bottom:.9rem;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">
+              <span style="background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);border-radius:4px;padding:.12rem .45rem;font-size:.66rem;font-family:'JetBrains Mono',monospace;color:var(--cyan)">TYPE 1</span>
+              <strong style="font-size:.86rem">Data Retrieval</strong>
+              <span style="font-size:.7rem;color:var(--emerald)">✓ Read-only · Safe</span>
+            </div>
+            <p style="font-size:.76rem;color:var(--text-muted);margin-bottom:.35rem">ChatGPT fetches information — it never changes anything.</p>
+            <div><span class="tool-tag">📊 Pull GL balances</span><span class="tool-tag">📄 Fetch invoice</span><span class="tool-tag">📋 Get budget actuals</span><span class="tool-tag">📅 Read calendar</span></div>
+          </div>
+          <div style="margin-bottom:.9rem;padding-bottom:.9rem;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">
+              <span style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:4px;padding:.12rem .45rem;font-size:.66rem;font-family:'JetBrains Mono',monospace;color:var(--gold)">TYPE 2</span>
+              <strong style="font-size:.86rem">Action Plugins</strong>
+              <span style="font-size:.7rem;color:var(--gold)">⚠ Human approval gate</span>
+            </div>
+            <p style="font-size:.76rem;color:var(--text-muted);margin-bottom:.35rem">ChatGPT initiates an action — you confirm before it executes.</p>
+            <div><span class="tool-tag" style="border-color:rgba(245,158,11,.3);color:var(--gold);background:rgba(245,158,11,.08)">📧 Send email</span><span class="tool-tag" style="border-color:rgba(245,158,11,.3);color:var(--gold);background:rgba(245,158,11,.08)">📝 Create event</span><span class="tool-tag" style="border-color:rgba(245,158,11,.3);color:var(--gold);background:rgba(245,158,11,.08)">🔔 Trigger approval</span></div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">
+              <span style="background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);border-radius:4px;padding:.12rem .45rem;font-size:.66rem;font-family:'JetBrains Mono',monospace;color:#a78bfa">TYPE 3</span>
+              <strong style="font-size:.86rem">Custom GPTs / GPT Store</strong>
+            </div>
+            <p style="font-size:.76rem;color:var(--text-muted);margin-bottom:.35rem">Pre-built specialist AI assistants — like downloading a Finance app.</p>
+            <div><span class="agent-tag">📑 Finance Analyst GPT</span><span class="agent-tag">📊 Excel Formula GPT</span><span class="agent-tag">⚖️ Compliance GPT</span></div>
+          </div>
+        </div>
+        <div class="card" style="border-color:rgba(139,92,246,.35);padding:1.1rem">
+          <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.6rem">
+            <div class="icon-circle" style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);font-size:1.3rem;width:44px;height:44px">🧩</div>
+            <div><h3 style="margin:0;color:#a78bfa">With a Plugin Active</h3><p style="font-size:.72rem;color:var(--text-dim)">ChatGPT + live connection</p></div>
+          </div>
+          <p style="font-size:.82rem;color:var(--text-muted);line-height:1.65">Now ChatGPT can <strong style="color:#a78bfa">ask your ERP for today's AR balance</strong>, retrieve a specific invoice, check a customer's payment history, and return a <strong style="color:var(--text)">real, current answer</strong> — not a guess from training data.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 08 · INTERACTIVE PLUGIN EXPLORER -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s8" data-notes="Let the audience click on tools they recognise from their own work. As they select tools, the right panel assembles a live workflow showing exactly what ChatGPT could do with those connections. Key message: the AI is only as connected as you decide. You stay in control of every pipeline step. Ask: which of these tools does your team use today?">
+  <div style="width:100%;max-width:1060px;z-index:1">
+    <div class="section-tag">SECTION 3 · WORKFLOW BUILDER</div>
+    <h2 class="slide-title">Build Your <span>Connected Workflow</span></h2>
+    <p class="lead" style="margin-bottom:1rem">Click the tools your department uses — see ChatGPT connect them into a live workflow</p>
+    <div class="grid-2" style="align-items:start;gap:1.2rem">
+      <div>
+        <p style="font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.6rem">Select your connected tools</p>
+        <div id="plugin-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem"></div>
+        <div style="margin-top:.7rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem;font-size:.73rem;color:var(--text-dim)">
+          <strong style="color:var(--text-muted)">ChatGPT sees only what you select.</strong> Each ✓ = a plugin you consciously authorised.
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.7rem">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <p style="font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase">Live Workflow Preview</p>
+          <button onclick="clearPlugins()" style="background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:.2rem .55rem;font-size:.7rem;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s" onmouseover="this.style.borderColor='var(--emerald)';this.style.color='var(--emerald)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">↺ Reset</button>
+        </div>
+        <div id="workflow-preview" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;min-height:220px;position:relative">
+          <div id="workflow-empty" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-dim);font-size:.8rem;text-align:center;gap:.4rem;pointer-events:none">
+            <span style="font-size:2rem">🔌</span>
+            <span>Select tools on the left<br>to build your workflow</span>
+          </div>
+          <div id="workflow-steps" style="display:flex;flex-direction:column;gap:.45rem"></div>
+        </div>
+        <div>
+          <p style="font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.45rem">Example ChatGPT prompts</p>
+          <div id="prompt-examples" style="display:flex;flex-direction:column;gap:.35rem">
+            <div class="highlight-box" style="padding:.55rem .85rem">
+              <p style="font-size:.76rem;color:var(--text-muted)">Select tools above to see matching example prompts</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 09 · EFFICIENCY CHARTS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s9" data-notes="These are real-world benchmark numbers from Finance teams that have deployed AI co-pilots. The bar chart shows hours saved per week per role. The area chart shows cumulative time reclaimed over the year. The doughnut shows how your working week shifts when Codex handles the routine. Bottom line: more time for the work only you can do.">
+  <div style="width:100%;max-width:1050px;z-index:1">
+    <div class="section-tag">SECTION 4 · IMPACT &amp; EFFICIENCY</div>
+    <h2 class="slide-title">The Numbers: <span>Time Reclaimed</span></h2>
+    <p class="lead" style="margin-bottom:1.5rem">Real benchmarks from Finance teams using AI co-pilots globally</p>
+
+    <div class="grid-3">
+      <!-- BAR CHART -->
+      <div class="card" style="grid-column:span 2;padding:1.2rem">
+        <h3 style="margin-bottom:.3rem">Weekly Hours Saved by Task Type</h3>
+        <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:1rem">Average per Finance professional per week</p>
+        <svg viewBox="0 0 520 180" style="width:100%;height:180px">
+          <!-- Grid lines -->
+          <line x1="60" y1="20" x2="60" y2="155" stroke="#1e3a40" stroke-width="1"/>
+          <line x1="60" y1="155" x2="510" y2="155" stroke="#1e3a40" stroke-width="1"/>
+          <line x1="60" y1="95" x2="510" y2="95" stroke="#1e3a40" stroke-width=".5" stroke-dasharray="3,3"/>
+          <line x1="60" y1="55" x2="510" y2="55" stroke="#1e3a40" stroke-width=".5" stroke-dasharray="3,3"/>
+
+          <!-- Y labels -->
+          <text x="50" y="158" text-anchor="end" fill="#4a706d" font-size="10" font-family="JetBrains Mono">0h</text>
+          <text x="50" y="98" text-anchor="end" fill="#4a706d" font-size="10" font-family="JetBrains Mono">3h</text>
+          <text x="50" y="58" text-anchor="end" fill="#4a706d" font-size="10" font-family="JetBrains Mono">5h</text>
+          <text x="50" y="23" text-anchor="end" fill="#4a706d" font-size="10" font-family="JetBrains Mono">7h</text>
+
+          <!-- Bars with animation -->
+          <!-- Data Entry -->
+          <rect x="75" y="155" width="44" height="0" fill="#7c3aed" rx="3" opacity=".9" class="bar-anim" data-height="108">
+            <animate attributeName="height" from="0" to="108" dur=".8s" fill="freeze" begin=".2s"/>
+            <animate attributeName="y" from="155" to="47" dur=".8s" fill="freeze" begin=".2s"/>
+          </rect>
+          <text x="97" y="170" text-anchor="middle" fill="#7a9e9b" font-size="9" font-family="DM Sans">Data Entry</text>
+
+          <!-- Report Gen -->
+          <rect x="150" y="155" width="44" height="0" fill="#818cf8" rx="3" opacity=".9">
+            <animate attributeName="height" from="0" to="90" dur=".8s" fill="freeze" begin=".4s"/>
+            <animate attributeName="y" from="155" to="65" dur=".8s" fill="freeze" begin=".4s"/>
+          </rect>
+          <text x="172" y="170" text-anchor="middle" fill="#7a9e9b" font-size="9" font-family="DM Sans">Report Gen</text>
+
+          <!-- Reconciliation -->
+          <rect x="225" y="155" width="44" height="0" fill="#a78bfa" rx="3" opacity=".9">
+            <animate attributeName="height" from="0" to="78" dur=".8s" fill="freeze" begin=".6s"/>
+            <animate attributeName="y" from="155" to="77" dur=".8s" fill="freeze" begin=".6s"/>
+          </rect>
+          <text x="247" y="170" text-anchor="middle" fill="#7a9e9b" font-size="9" font-family="DM Sans">Recon</text>
+
+          <!-- Invoice Chase -->
+          <rect x="300" y="155" width="44" height="0" fill="#7c3aed" rx="3" opacity=".7">
+            <animate attributeName="height" from="0" to="60" dur=".8s" fill="freeze" begin=".8s"/>
+            <animate attributeName="y" from="155" to="95" dur=".8s" fill="freeze" begin=".8s"/>
+          </rect>
+          <text x="322" y="170" text-anchor="middle" fill="#7a9e9b" font-size="9" font-family="DM Sans">Inv. Chase</text>
+
+          <!-- Variance -->
+          <rect x="375" y="155" width="44" height="0" fill="#818cf8" rx="3" opacity=".7">
+            <animate attributeName="height" from="0" to="72" dur=".8s" fill="freeze" begin="1s"/>
+            <animate attributeName="y" from="155" to="83" dur=".8s" fill="freeze" begin="1s"/>
+          </rect>
+          <text x="397" y="170" text-anchor="middle" fill="#7a9e9b" font-size="9" font-family="DM Sans">Variance</text>
+
+          <!-- Audit Prep -->
+          <rect x="450" y="155" width="44" height="0" fill="#f59e0b" rx="3" opacity=".8">
+            <animate attributeName="height" from="0" to="96" dur=".8s" fill="freeze" begin="1.2s"/>
+            <animate attributeName="y" from="155" to="59" dur=".8s" fill="freeze" begin="1.2s"/>
+          </rect>
+          <text x="472" y="170" text-anchor="middle" fill="#7a9e9b" font-size="9" font-family="DM Sans">Audit Prep</text>
+
+          <!-- Value labels -->
+          <text x="97" y="43" text-anchor="middle" fill="#10b981" font-size="10" font-weight="bold" font-family="Syne">7.0h</text>
+          <text x="172" y="61" text-anchor="middle" fill="#14b8a6" font-size="10" font-weight="bold" font-family="Syne">5.8h</text>
+          <text x="247" y="73" text-anchor="middle" fill="#06b6d4" font-size="10" font-weight="bold" font-family="Syne">5.0h</text>
+          <text x="322" y="91" text-anchor="middle" fill="#10b981" font-size="10" font-weight="bold" font-family="Syne">3.8h</text>
+          <text x="397" y="79" text-anchor="middle" fill="#14b8a6" font-size="10" font-weight="bold" font-family="Syne">4.5h</text>
+          <text x="472" y="55" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="bold" font-family="Syne">6.2h</text>
+        </svg>
+      </div>
+
+      <!-- DOUGHNUT -->
+      <div class="card" style="padding:1.2rem;display:flex;flex-direction:column">
+        <h3 style="margin-bottom:.3rem">Your Week, Reimagined</h3>
+        <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:.8rem">Where hours go with Codex</p>
+        <div style="display:flex;align-items:center;gap:1rem;flex:1">
+          <svg viewBox="0 0 120 120" style="width:100px;height:100px;flex-shrink:0">
+            <!-- Background ring -->
+            <circle cx="60" cy="60" r="45" fill="none" stroke="#1e3a40" stroke-width="18"/>
+            <!-- Strategic work: 40% = 101.7 of 282.6 -->
+            <circle cx="60" cy="60" r="45" fill="none" stroke="#7c3aed" stroke-width="18"
+              stroke-dasharray="101.7 180.9" stroke-dashoffset="70.6" opacity=".95"/>
+            <!-- Analysis: 30% -->
+            <circle cx="60" cy="60" r="45" fill="none" stroke="#818cf8" stroke-width="18"
+              stroke-dasharray="84.8 197.8" stroke-dashoffset="-31.1"/>
+            <!-- Routine w Codex: 20% -->
+            <circle cx="60" cy="60" r="45" fill="none" stroke="#f59e0b" stroke-width="18"
+              stroke-dasharray="56.5 226.1" stroke-dashoffset="-115.9"/>
+            <!-- Admin: 10% -->
+            <circle cx="60" cy="60" r="45" fill="none" stroke="#3b82f6" stroke-width="18"
+              stroke-dasharray="28.3 254.3" stroke-dashoffset="-172.4"/>
+            <text x="60" y="56" text-anchor="middle" fill="#e2f0ee" font-size="13" font-weight="bold" font-family="Syne">40h</text>
+            <text x="60" y="68" text-anchor="middle" fill="#7a9e9b" font-size="7" font-family="DM Sans">/ week</text>
+          </svg>
+          <div class="doughnut-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div><span style="color:var(--text-muted)">Strategic <strong style="color:var(--text)">40%</strong></span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#818cf8"></div><span style="color:var(--text-muted)">Analysis <strong style="color:var(--text)">30%</strong></span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div><span style="color:var(--text-muted)">Routine <strong style="color:var(--text)">20%</strong></span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div><span style="color:var(--text-muted)">Admin <strong style="color:var(--text)">10%</strong></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AREA CHART -->
+    <div class="card" style="padding:1.2rem;margin-top:1rem">
+      <h3 style="margin-bottom:.3rem">Cumulative Hours Reclaimed — Year 1</h3>
+      <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:.8rem">Across a 5-person Finance team (ramp-up period included)</p>
+      <svg viewBox="0 0 800 120" style="width:100%;height:110px">
+        <defs>
+          <linearGradient id="area-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7c3aed" stop-opacity=".4"/>
+            <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- Grid -->
+        <line x1="40" y1="10" x2="40" y2="95" stroke="#1e3a40" stroke-width="1"/>
+        <line x1="40" y1="95" x2="790" y2="95" stroke="#1e3a40" stroke-width="1"/>
+        <line x1="40" y1="55" x2="790" y2="55" stroke="#1e3a40" stroke-width=".5" stroke-dasharray="3,3"/>
+
+        <!-- Area fill -->
+        <path d="M40,93 C100,88 150,80 200,70 S280,50 340,40 S440,25 500,20 S620,15 680,13 S750,12 790,12 L790,95 L40,95 Z"
+          fill="url(#area-grad)"/>
+        <!-- Line -->
+        <path d="M40,93 C100,88 150,80 200,70 S280,50 340,40 S440,25 500,20 S620,15 680,13 S750,12 790,12"
+          fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round">
+          <animate attributeName="stroke-dashoffset" from="1000" to="0" dur="2s" fill="freeze"/>
+        </path>
+
+        <!-- Month labels -->
+        <text x="40" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">Jan</text>
+        <text x="115" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">Feb</text>
+        <text x="190" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">Mar</text>
+        <text x="265" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">Apr</text>
+        <text x="340" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">May</text>
+        <text x="415" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">Jun</text>
+        <text x="490" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">Jul</text>
+        <text x="565" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">Aug</text>
+        <text x="640" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">Sep</text>
+        <text x="715" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">Oct</text>
+        <text x="790" y="108" text-anchor="middle" fill="#4a706d" font-size="9" font-family="JetBrains Mono">Nov</text>
+
+        <!-- End label -->
+        <circle cx="790" cy="12" r="4" fill="#a78bfa"/>
+        <text x="780" y="8" text-anchor="end" fill="#a78bfa" font-size="11" font-weight="bold" font-family="Syne">1,400+ hrs</text>
+
+        <!-- Y labels -->
+        <text x="35" y="98" text-anchor="end" fill="#4a706d" font-size="9" font-family="JetBrains Mono">0</text>
+        <text x="35" y="58" text-anchor="end" fill="#4a706d" font-size="9" font-family="JetBrains Mono">700</text>
+        <text x="35" y="14" text-anchor="end" fill="#4a706d" font-size="9" font-family="JetBrains Mono">1400</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 10 · AUDIT READINESS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s10" data-notes="Audit season is traditionally one of the most stressful periods. Teams spend weeks pulling evidence packages together manually. Codex's Audit Agent knows where every document lives, can cross-reference GL entries with supporting invoices, and builds the entire evidence pack while you review. Real example: a mid-size utility company cut their audit prep from 3 weeks to 4 days.">
+  <div style="width:100%;max-width:1050px;z-index:1">
+    <div class="section-tag">SECTION 4 · USE CASE 1 · AUDIT</div>
+    <h2 class="slide-title">Audit <span>Readiness</span></h2>
+    <p class="lead" style="margin-bottom:1.5rem">From 3 weeks of scrambling to 4 days of confident evidence delivery</p>
+
+    <div class="grid-2" style="align-items:start">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <!-- Before -->
+        <div class="card card-red">
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem">
+            <span style="font-size:1.2rem">😰</span>
+            <h3 style="color:var(--red);margin:0">WITHOUT Codex</h3>
+          </div>
+          <ul class="check-list">
+            <li style="color:var(--text-muted)">Manual document retrieval from multiple systems</li>
+            <li style="color:var(--text-muted)">15–20 staff-days preparing evidence packages</li>
+            <li style="color:var(--text-muted)">High risk of missing or inconsistent documents</li>
+            <li style="color:var(--text-muted)">Spreadsheet indexing prone to human error</li>
+          </ul>
+        </div>
+        <!-- After -->
+        <div class="card card-accent">
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem">
+            <span style="font-size:1.2rem">🚀</span>
+            <h3 style="color:var(--emerald);margin:0">WITH Codex</h3>
+          </div>
+          <ul class="check-list">
+            <li>Audit Agent maps all transactions to supporting docs automatically</li>
+            <li>Evidence index generated in hours, not days</li>
+            <li>Completeness check flags gaps before auditor arrives</li>
+            <li>You review and certify — no document hunting required</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Process steps -->
+      <div class="card" style="padding:1.4rem">
+        <h3 style="margin-bottom:1rem">The Audit Agent — Step by Step</h3>
+        <div style="display:flex;flex-direction:column;gap:.8rem">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div>
+              <div style="font-size:.82rem;font-weight:600;margin-bottom:.2rem">
+                <span class="tool-tag" style="margin:0 .3rem 0 0">Plugin: ERP Query</span>
+                Pull all transactions in scope
+              </div>
+              <p style="font-size:.75rem;color:var(--text-dim)">Connects to your ERP and retrieves all GL entries for the audit period in seconds.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div>
+              <div style="font-size:.82rem;font-weight:600;margin-bottom:.2rem">
+                <span class="agent-tag" style="margin:0 .3rem 0 0">Agent: Match Documents</span>
+                Cross-reference invoices & approvals
+              </div>
+              <p style="font-size:.75rem;color:var(--text-dim)">Agent reads document storage and links each transaction to its invoice, PO, and approval trail.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:var(--gold)"></div>
+            <div>
+              <div style="font-size:.82rem;font-weight:600;margin-bottom:.2rem">
+                <span style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:4px;padding:.1rem .4rem;font-size:.7rem;color:var(--gold);font-family:'JetBrains Mono',monospace;margin-right:.3rem">Gap Report</span>
+                Flag missing or weak evidence
+              </div>
+              <p style="font-size:.75rem;color:var(--text-dim)">Any transaction lacking complete documentation is flagged for your attention before submission.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:var(--blue)"></div>
+            <div>
+              <div style="font-size:.82rem;font-weight:600;margin-bottom:.2rem">
+                <span style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:4px;padding:.1rem .4rem;font-size:.7rem;color:var(--blue);font-family:'JetBrains Mono',monospace;margin-right:.3rem">YOU REVIEW</span>
+                Sign off on evidence index
+              </div>
+              <p style="font-size:.75rem;color:var(--text-dim)">You review the completed pack, make corrections, and digitally certify — full professional accountability maintained.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metric strip -->
+    <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap">
+      <div class="card" style="flex:1;min-width:140px;padding:1rem;text-align:center">
+        <span class="stat-num" style="font-size:1.8rem">21 → 4</span>
+        <span class="stat-label">Staff-days for audit prep</span>
+      </div>
+      <div class="card" style="flex:1;min-width:140px;padding:1rem;text-align:center">
+        <span class="stat-num" style="font-size:1.8rem">98%</span>
+        <span class="stat-label">Document match rate</span>
+      </div>
+      <div class="card" style="flex:1;min-width:140px;padding:1rem;text-align:center">
+        <span class="stat-num" style="font-size:1.8rem">0</span>
+        <span class="stat-label">Missing evidence surprises</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 11 · BUDGET VARIANCE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s11" data-notes="Budget variance analysis is usually a monthly grind — pulling actuals, building pivot tables, chasing department heads for explanations. Codex's Variance Agent does all of this automatically, drafts the narrative explanation based on known business context, and flags anything above your defined materiality threshold. You add the judgment and approve the commentary.">
+  <div style="width:100%;max-width:1050px;z-index:1">
+    <div class="section-tag">SECTION 4 · USE CASE 2 · VARIANCE</div>
+    <h2 class="slide-title">Budget <span>Variance</span> Analysis</h2>
+    <p class="lead" style="margin-bottom:1.5rem">Monthly variance packs in hours, not days — with AI-drafted narratives you approve</p>
+
+    <div class="grid-2" style="align-items:start;gap:1.2rem">
+      <!-- Variance Table Interactive -->
+      <div class="card" style="padding:1.2rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+          <h3 style="margin:0">October 2025 — Variance Report</h3>
+          <span style="font-size:.72rem;font-family:'JetBrains Mono',monospace;color:var(--emerald);background:var(--emerald-glow);border:1px solid rgba(16,185,129,.25);padding:.15rem .5rem;border-radius:4px">AI GENERATED</span>
+        </div>
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Cost Centre</th>
+              <th>Budget</th>
+              <th>Actual</th>
+              <th>Variance</th>
+              <th>Flag</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Operations</td><td>$450K</td><td>$462K</td>
+              <td style="color:#f59e0b">+$12K</td>
+              <td><span style="color:#f59e0b;font-size:.75rem">⚠ Review</span></td>
+            </tr>
+            <tr>
+              <td>IT Dept</td><td>$180K</td><td>$171K</td>
+              <td style="color:#10b981">-$9K</td>
+              <td><span style="color:#10b981;font-size:.75rem">✓ OK</span></td>
+            </tr>
+            <tr>
+              <td>Billing Ops</td><td>$95K</td><td>$118K</td>
+              <td style="color:#ef4444">+$23K</td>
+              <td><span style="color:#ef4444;font-size:.75rem">🚨 Material</span></td>
+            </tr>
+            <tr>
+              <td>Finance Admin</td><td>$60K</td><td>$58K</td>
+              <td style="color:#10b981">-$2K</td>
+              <td><span style="color:#10b981;font-size:.75rem">✓ OK</span></td>
+            </tr>
+            <tr>
+              <td>Executive</td><td>$120K</td><td>$135K</td>
+              <td style="color:#f59e0b">+$15K</td>
+              <td><span style="color:#f59e0b;font-size:.75rem">⚠ Review</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:.8rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:.7rem .9rem">
+          <p style="font-size:.78rem;color:var(--text-muted)">
+            <strong style="color:var(--red)">🚨 AI Narrative Draft:</strong> Billing Ops overspend of $23K (+24%) driven by emergency contractor engagement in weeks 2–3. Codex has linked this to 3 vendor invoices totalling $21.4K. <em>Pending your review and commentary.</em>
+          </p>
+        </div>
+      </div>
+
+      <!-- What the agent does -->
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="card card-accent">
+          <h3 style="margin-bottom:.6rem">🤖 What the Variance Agent Does</h3>
+          <ul class="check-list">
+            <li>Pulls actuals from ERP every month-end automatically</li>
+            <li>Compares against approved budget line by line</li>
+            <li>Calculates absolute and % variances</li>
+            <li>Identifies material items above your threshold (e.g. 10%+)</li>
+            <li>Searches transaction history for likely root causes</li>
+            <li>Drafts narrative explanation for your review</li>
+          </ul>
+        </div>
+
+        <div class="card card-gold">
+          <h3 style="margin-bottom:.6rem;color:var(--gold)">🧑‍💼 What You Do</h3>
+          <ul class="check-list">
+            <li>Review flagged items with context already provided</li>
+            <li>Edit or approve AI-drafted narratives</li>
+            <li>Escalate material items to department heads</li>
+            <li>Sign off on the board-ready variance pack</li>
+          </ul>
+          <div style="margin-top:.8rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:6px;padding:.6rem .8rem">
+            <p style="font-size:.78rem;color:var(--text-muted)">
+              <strong style="color:var(--gold)">Time saved:</strong> From 2.5 days → under 4 hours per monthly cycle.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 12 · AUTOMATED BILLING FOLLOW-UPS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s12" data-notes="For billing teams, chasing overdue accounts is time-consuming and sometimes awkward. Codex handles the first two or three reminder cycles automatically — professional, correctly-timed, personalised emails that reference the correct invoice numbers. You only get involved when an account needs a human conversation. Think of it as having a very diligent billing clerk who never forgets a follow-up date.">
+  <div style="width:100%;max-width:1050px;z-index:1">
+    <div class="section-tag">SECTION 4 · USE CASE 3 · BILLING</div>
+    <h2 class="slide-title">Automated Billing <span>Follow-Ups</span></h2>
+    <p class="lead" style="margin-bottom:1.5rem">Professional, timed collections workflow — without the manual chase cycle</p>
+
+    <div class="grid-2" style="align-items:start">
+      <!-- Workflow -->
+      <div class="card" style="padding:1.4rem">
+        <h3 style="margin-bottom:1.2rem">Collections Escalation Ladder</h3>
+        <div style="display:flex;flex-direction:column;gap:.8rem">
+          <div style="display:flex;gap:.8rem;align-items:flex-start">
+            <div style="background:var(--emerald-glow);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:.4rem .7rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--emerald);white-space:nowrap">Day 1</div>
+            <div>
+              <div style="font-size:.85rem;font-weight:600;margin-bottom:.15rem">🤖 Auto: Friendly Reminder</div>
+              <p style="font-size:.75rem;color:var(--text-dim)">Codex sends a polite, branded reminder with invoice PDF attached. No human involvement needed.</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:.8rem;align-items:flex-start">
+            <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:.4rem .7rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--gold);white-space:nowrap">Day 7</div>
+            <div>
+              <div style="font-size:.85rem;font-weight:600;margin-bottom:.15rem">🤖 Auto: Second Notice</div>
+              <p style="font-size:.75rem;color:var(--text-dim)">If no payment, Codex sends a firmer notice referencing outstanding balance and due date. Logged to CRM.</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:.8rem;align-items:flex-start">
+            <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:.4rem .7rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--red);white-space:nowrap">Day 14</div>
+            <div>
+              <div style="font-size:.85rem;font-weight:600;margin-bottom:.15rem;color:var(--gold)">⚠️ Human Escalation</div>
+              <p style="font-size:.75rem;color:var(--text-dim)">Codex flags the account to you with full payment history, contact log, and recommended next action.</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:.8rem;align-items:flex-start">
+            <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:.4rem .7rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--blue);white-space:nowrap">Day 21+</div>
+            <div>
+              <div style="font-size:.85rem;font-weight:600;margin-bottom:.15rem;color:var(--blue)">🧑‍💼 You Take Over</div>
+              <p style="font-size:.75rem;color:var(--text-dim)">You decide: payment plan, legal action, or direct call. All previous AI correspondence available in one view.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <!-- Sample email -->
+        <div class="card" style="padding:1rem;background:var(--surface2)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem">
+            <span style="font-size:.72rem;font-family:'JetBrains Mono',monospace;color:var(--cyan)">SAMPLE · AI-DRAFTED EMAIL</span>
+            <span style="font-size:.68rem;color:var(--text-dim)">Day 1 Reminder</span>
+          </div>
+          <div style="font-size:.8rem;line-height:1.7;color:var(--text-muted)">
+            <p><strong style="color:var(--text)">Subject:</strong> Invoice #JPS-2025-1842 — Payment Reminder</p>
+            <p style="margin-top:.5rem">Dear Mr. Richards,</p>
+            <p style="margin-top:.3rem">This is a courtesy reminder that Invoice #JPS-2025-1842 for $14,500.00 was due on <strong style="color:var(--text)">October 15, 2025</strong>.</p>
+            <p style="margin-top:.3rem">Please find the invoice attached. If payment has already been made, kindly disregard this notice.</p>
+            <p style="margin-top:.3rem">Regards,<br><em style="color:var(--emerald)">Codex · Billing Department</em><br><em style="color:var(--text-dim);font-size:.72rem">(Reviewed by Finance Team)</em></p>
+          </div>
+        </div>
+
+        <!-- Metrics -->
+        <div style="display:flex;gap:.8rem">
+          <div class="card" style="flex:1;padding:.9rem;text-align:center">
+            <span class="stat-num" style="font-size:1.6rem;color:var(--cyan)">78%</span>
+            <span class="stat-label">Resolved before human escalation</span>
+          </div>
+          <div class="card" style="flex:1;padding:.9rem;text-align:center">
+            <span class="stat-num" style="font-size:1.6rem">4.2</span>
+            <span class="stat-label">Days faster average collection</span>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <p style="font-size:.82rem;color:var(--text-muted)">
+            <strong style="color:var(--emerald)">Your control:</strong> You set the tone, thresholds, and escalation rules. Codex follows your playbook — it never deviates from the communication standards you define.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 13 · HUMAN IN THE LOOP -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s13" data-notes="This is perhaps the most important slide. Human-in-the-Loop is not a nice-to-have — it's a hard architectural requirement of how Codex is built. For every material action, a human must approve. Codex doesn't have authority over your data; it has access. The distinction matters enormously from a governance and compliance standpoint. Your professional judgment is always the final word.">
+  <div style="width:100%;max-width:1050px;z-index:1">
+    <div class="section-tag">SECTION 5 · GOVERNANCE &amp; CONTROL</div>
+    <h2 class="slide-title"><span>Human-in-the-Loop</span> Framework</h2>
+    <p class="lead" style="margin-bottom:1.5rem">Professional judgment over automation — always and by design</p>
+
+    <!-- Governance table -->
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:1.2rem">
+      <div class="gov-row gov-header">
+        <div class="gov-cell">ACTION TYPE</div>
+        <div class="gov-cell">CODEX CAN</div>
+        <div class="gov-cell">REQUIRES HUMAN</div>
+      </div>
+      <div class="gov-row">
+        <div class="gov-cell"><strong>Invoice Processing</strong></div>
+        <div class="gov-cell green-cell">Extract, match, validate, flag</div>
+        <div class="gov-cell gold-cell">⚠ Approval for payment posting</div>
+      </div>
+      <div class="gov-row">
+        <div class="gov-cell"><strong>Budget Reports</strong></div>
+        <div class="gov-cell green-cell">Pull data, calculate, draft narrative</div>
+        <div class="gov-cell gold-cell">⚠ Review, edit & sign-off</div>
+      </div>
+      <div class="gov-row">
+        <div class="gov-cell"><strong>Billing Emails</strong></div>
+        <div class="gov-cell green-cell">Draft, schedule, send Days 1–7</div>
+        <div class="gov-cell gold-cell">⚠ Escalation decisions</div>
+      </div>
+      <div class="gov-row">
+        <div class="gov-cell"><strong>Audit Evidence</strong></div>
+        <div class="gov-cell green-cell">Collect, index, cross-reference</div>
+        <div class="gov-cell gold-cell">⚠ Certification & submission</div>
+      </div>
+      <div class="gov-row">
+        <div class="gov-cell"><strong>Journal Entries</strong></div>
+        <div class="gov-cell green-cell">Suggest entries with supporting data</div>
+        <div class="gov-cell" style="color:var(--red)">🚨 ALWAYS human — no exceptions</div>
+      </div>
+      <div class="gov-row">
+        <div class="gov-cell"><strong>Financial Statements</strong></div>
+        <div class="gov-cell green-cell">Format, populate, draft notes</div>
+        <div class="gov-cell" style="color:var(--red)">🚨 ALWAYS human — no exceptions</div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card" style="text-align:center;padding:1.2rem">
+        <div style="font-size:2rem;margin-bottom:.5rem">🔐</div>
+        <h3>Access ≠ Authority</h3>
+        <p style="font-size:.8rem;color:var(--text-muted)">Codex reads your systems. It never has authority to post, pay, or approve without your explicit instruction.</p>
+      </div>
+      <div class="card card-accent" style="text-align:center;padding:1.2rem">
+        <div style="font-size:2rem;margin-bottom:.5rem">📜</div>
+        <h3>Full Audit Trail</h3>
+        <p style="font-size:.8rem;color:var(--text-muted)">Every Codex action is logged with timestamp, user who approved, and reasoning. Fully auditable by your external auditors.</p>
+      </div>
+      <div class="card" style="text-align:center;padding:1.2rem">
+        <div style="font-size:2rem;margin-bottom:.5rem">⚡</div>
+        <h3>Override Anytime</h3>
+        <p style="font-size:.8rem;color:var(--text-muted)">Any team member can pause, override, or cancel any Codex workflow at any time. You are always in control.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 14 · BUSINESS PLANNER USE CASE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s14" data-notes="Business and Corporate Planners sit at the intersection of every department — they need data from Finance, Operations, HR, and Sales, all reconciled into a coherent strategic picture. Today that means dozens of emails, spreadsheet versions, and follow-up meetings just to get the numbers. Codex changes this fundamentally. The planner becomes the conductor, not the data collector.">
+  <div style="width:100%;max-width:1050px;z-index:1">
+    <div class="section-tag">SECTION 4 · USE CASE 4 · PLANNING</div>
+    <h2 class="slide-title">Business &amp; Corporate <span>Planning</span></h2>
+    <p class="lead" style="margin-bottom:1.4rem">From data collector to strategic conductor — Codex handles the gathering so you drive the thinking</p>
+
+    <div class="grid-2" style="align-items:start;gap:1.2rem">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+
+        <div class="card card-red" style="padding:1.2rem">
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem">
+            <span style="font-size:1.2rem">😓</span>
+            <h3 style="color:var(--red);margin:0">The Planner's Weekly Grind</h3>
+          </div>
+          <ul class="check-list">
+            <li style="color:var(--text-muted)">Chase 6 departments for actuals every month-end</li>
+            <li style="color:var(--text-muted)">Manually reconcile 4 different spreadsheet versions</li>
+            <li style="color:var(--text-muted)">Rebuild the same slide deck with updated numbers</li>
+            <li style="color:var(--text-muted)">Write commentary explaining variances already in the data</li>
+            <li style="color:var(--text-muted)">Spend 60% of time on data work, 40% on actual planning</li>
+          </ul>
+        </div>
+
+        <div class="card card-accent" style="padding:1.2rem">
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem">
+            <span style="font-size:1.2rem">🧭</span>
+            <h3 style="color:var(--emerald);margin:0">WITH Codex</h3>
+          </div>
+          <ul class="check-list">
+            <li>Codex pulls actuals from every department automatically at month-end</li>
+            <li>Single consolidated view — no version conflicts</li>
+            <li>Deck refreshes with live data; you refine the narrative</li>
+            <li>Scenario models updated in minutes, not days</li>
+            <li>Spend 80% of time on insight, strategy, and stakeholders</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div class="card" style="padding:1.3rem">
+          <h3 style="margin-bottom:1rem">Planning Agent — Live Scenario</h3>
+          <div style="display:flex;flex-direction:column;gap:.75rem">
+
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.7rem .9rem">
+              <div style="font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--cyan);margin-bottom:.3rem">PLANNER PROMPT</div>
+              <p style="font-size:.8rem;color:var(--text-muted);line-height:1.6;font-style:italic">"Build me a 3-scenario revenue model for Q1 — base, upside 15%, downside 20% — using this month's actuals."</p>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:.4rem">
+              <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.78rem;color:var(--text-muted)">
+                <span style="color:var(--emerald);flex-shrink:0;margin-top:.1rem">①</span>
+                <span><strong style="color:var(--text)">Fetch actuals</strong> — pulls this month's revenue lines from ERP across all business units</span>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.78rem;color:var(--text-muted)">
+                <span style="color:var(--emerald);flex-shrink:0;margin-top:.1rem">②</span>
+                <span><strong style="color:var(--text)">Build model</strong> — applies growth and risk factors to each scenario automatically</span>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.78rem;color:var(--text-muted)">
+                <span style="color:var(--emerald);flex-shrink:0;margin-top:.1rem">③</span>
+                <span><strong style="color:var(--text)">Draft commentary</strong> — writes scenario assumptions and key risk flags for your review</span>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.78rem;color:var(--text-muted)">
+                <span style="color:var(--teal);flex-shrink:0;margin-top:.1rem">④</span>
+                <span style="color:var(--teal)"><strong>You review, stress-test, and present</strong> — strategic judgment stays with you</span>
+              </div>
+            </div>
+
+            <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:.6rem .8rem">
+              <p style="font-size:.76rem;color:var(--text-muted)"><strong style="color:var(--emerald)">Time:</strong> What used to take 2 days of data wrangling now takes under 30 minutes — leaving you the rest of the week for the conversations that actually shape strategy.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="gap:.7rem">
+          <div class="card" style="padding:.9rem;text-align:center">
+            <span class="stat-num" style="font-size:1.7rem">5×</span>
+            <span class="stat-label">Faster scenario modelling</span>
+          </div>
+          <div class="card" style="padding:.9rem;text-align:center">
+            <span class="stat-num" style="font-size:1.7rem;color:var(--cyan)">80%</span>
+            <span class="stat-label">Less time on data gathering</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 15 · CLOSING -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s15" data-notes="We close where we started. Codex is not here to replace you. It's here because your skills and judgment are too valuable to spend on data collection and manual formatting. Every hour Codex saves is an hour you spend on the thinking, relationships, and decisions that actually move your organisation forward. Our next slide shows you exactly how to get started in 30 days.">
+  <div class="particle" style="width:160px;height:160px;top:5%;right:5%;animation-delay:1s"></div>
+  <div class="particle" style="width:80px;height:80px;bottom:10%;left:5%;animation-delay:3s"></div>
+  <div style="text-align:center;z-index:1;max-width:800px">
+    <div style="position:relative;display:inline-block;margin-bottom:2rem">
+      <div class="pulse-ring" style="width:80px;height:80px;top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+      <div class="pulse-ring" style="width:80px;height:80px;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:1.2s"></div>
+      <div style="font-size:3.5rem">🤝</div>
+    </div>
+    <h1 class="hero-title" style="font-size:clamp(2.5rem,6vw,5rem);margin-bottom:1rem">
+      Your Expertise.<br><span>Amplified.</span>
+    </h1>
+    <p style="font-size:clamp(.95rem,1.5vw,1.2rem);color:var(--text-muted);max-width:55ch;margin:0 auto 2rem;line-height:1.7">
+      Codex doesn't replace professionals.<br>
+      It frees them to do what only humans can —<br>
+      <strong style="color:var(--text)">judgment, strategy, and leadership.</strong>
+    </p>
+    <div class="glow-line" style="max-width:400px;margin:0 auto 2rem"></div>
+    <div style="display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem">
+      <div class="stat-box"><span class="stat-num">1,400+</span><span class="stat-label">Hours reclaimed / year</span></div>
+      <div class="stat-box"><span class="stat-num">3×</span><span class="stat-label">Faster reporting cycle</span></div>
+      <div class="stat-box"><span class="stat-num">100%</span><span class="stat-label">Human oversight retained</span></div>
+    </div>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <button onclick="goTo(15)" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:#fff;border-radius:8px;padding:.7rem 1.6rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">🚀 See Your 30-Day Plan →</button>
+      <button onclick="goTo(0)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.7rem 1.6rem;font-size:.9rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">↩ Restart</button>
+    </div>
+    <p style="margin-top:2rem;font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim)">
+      CODEX · AI CO-PILOT · CONFIDENTIAL INTERNAL PRESENTATION · 2025
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 16 · 30-DAY ROADMAP · CALL TO ACTION -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide" id="s16" data-notes="This is your call to action. Three weeks. One quick win per week. By day 30 your team will have saved real time, seen real output, and have the confidence to decide what to expand next. We're not asking for a big commitment — just 30 days to prove it works in your world. What task would you want off your plate first?">
+  <div class="scanline"></div>
+  <div class="particle" style="width:100px;height:100px;top:8%;right:4%;animation-delay:1s"></div>
+  <div class="particle" style="width:60px;height:60px;bottom:15%;left:3%;animation-delay:3s"></div>
+
+  <div style="width:100%;max-width:1020px;z-index:1">
+    <div class="section-tag">CALL TO ACTION</div>
+    <h2 class="slide-title">Your <span>30-Day</span> Quick-Start Plan</h2>
+    <p class="lead" style="margin-bottom:1.5rem">One quick win per week. Full value proven in a month. No disruption to your current workflow.</p>
+
+    <!-- Timeline -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-bottom:1.2rem">
+
+      <!-- Week 1 -->
+      <div class="card card-accent" style="padding:1.1rem;position:relative">
+        <div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--emerald);color:#000;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:800;padding:.15rem .7rem;border-radius:0 0 6px 6px;letter-spacing:.08em;white-space:nowrap">WEEK 1</div>
+        <div style="margin-top:1rem;text-align:center">
+          <div style="font-size:1.6rem;margin-bottom:.5rem">🗺️</div>
+          <h3 style="font-size:.95rem;margin-bottom:.5rem">Map &amp; Identify</h3>
+          <ul class="check-list" style="text-align:left">
+            <li>List your top 3 most time-consuming weekly tasks</li>
+            <li>Identify which involve data gathering or repetitive formatting</li>
+            <li>Pick one to pilot first</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Week 2 -->
+      <div class="card card-gold" style="padding:1.1rem;position:relative">
+        <div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:800;padding:.15rem .7rem;border-radius:0 0 6px 6px;letter-spacing:.08em;white-space:nowrap">WEEK 2</div>
+        <div style="margin-top:1rem;text-align:center">
+          <div style="font-size:1.6rem;margin-bottom:.5rem">🔌</div>
+          <h3 style="font-size:.95rem;margin-bottom:.5rem">Connect &amp; Run</h3>
+          <ul class="check-list" style="text-align:left">
+            <li>Connect Codex to the relevant system (email, ERP, or files)</li>
+            <li>Run your first automated task end-to-end</li>
+            <li>Note the time saved — even roughly</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Week 3 -->
+      <div class="card card-blue" style="padding:1.1rem;position:relative">
+        <div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:800;padding:.15rem .7rem;border-radius:0 0 6px 6px;letter-spacing:.08em;white-space:nowrap">WEEK 3</div>
+        <div style="margin-top:1rem;text-align:center">
+          <div style="font-size:1.6rem;margin-bottom:.5rem">⚙️</div>
+          <h3 style="font-size:.95rem;margin-bottom:.5rem">Refine &amp; Expand</h3>
+          <ul class="check-list" style="text-align:left">
+            <li>Adjust thresholds, tone, and rules based on Week 2</li>
+            <li>Add a second task or workflow</li>
+            <li>Share results with one colleague or team lead</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Week 4 -->
+      <div class="card" style="padding:1.1rem;position:relative;border-color:rgba(16,185,129,.4)">
+        <div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--emerald),var(--teal));color:#000;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:800;padding:.15rem .7rem;border-radius:0 0 6px 6px;letter-spacing:.08em;white-space:nowrap">WEEK 4 · REVIEW</div>
+        <div style="margin-top:1rem;text-align:center">
+          <div style="font-size:1.6rem;margin-bottom:.5rem">📊</div>
+          <h3 style="font-size:.95rem;margin-bottom:.5rem">Measure &amp; Decide</h3>
+          <ul class="check-list" style="text-align:left">
+            <li>Calculate total hours saved across the month</li>
+            <li>Identify the next 3 workflows to automate</li>
+            <li>Present ROI to leadership — let the numbers speak</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA bar -->
+    <div style="background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(99,102,241,.06));border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:1.2rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <div>
+        <p style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.25rem">Ready to start? One question.</p>
+        <p style="font-size:.85rem;color:var(--text-muted)">What is the <strong style="color:var(--emerald)">one task</strong> you wish you never had to do manually again?</p>
+        <p style="font-size:.78rem;color:var(--text-dim);margin-top:.3rem;font-style:italic">That's where we begin.</p>
+      </div>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap">
+        <button onclick="openDrawer()" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:#fff;border-radius:8px;padding:.65rem 1.4rem;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;white-space:nowrap">💬 Ask Codex Now</button>
+        <button onclick="goTo(0)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.65rem 1.2rem;font-size:.85rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap">↩ Restart</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end deck -->
+
+<!-- NAV -->
+<div id="nav">
+  <button onclick="prevSlide()" title="Previous">←</button>
+  <div class="progress-dots" id="dots"></div>
+  <span id="slide-counter">01 / 15</span>
+  <button onclick="nextSlide()" title="Next">→</button>
+</div>
+
+<script>
+// ── STATE ──
+let current = 0;
+const TOTAL = 16;
+let notesVisible = false;
+
+// ── INIT ──
+function init() {
+  // Build dots
+  const dotsEl = document.getElementById('dots');
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+  showSlide(0);
+}
+
+// ── NAVIGATION ──
+function showSlide(n) {
+  const slides = document.querySelectorAll('.slide');
+  slides.forEach((s, i) => {
+    s.classList.remove('active', 'exit');
+    if (i < n) s.classList.add('exit');
+  });
+  slides[n].classList.add('active');
+
+  // Dots
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.classList.toggle('active', i === n);
+  });
+
+  // Counter
+  document.getElementById('slide-counter').textContent =
+    String(n + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+
+  // Slide badge
+  document.querySelectorAll('.slide-badge').forEach(b => b.remove());
+  const badge = document.createElement('div');
+  badge.className = 'slide-badge';
+  badge.textContent = `${String(n+1).padStart(2,'0')} — ${String(TOTAL).padStart(2,'0')}`;
+  slides[n].appendChild(badge);
+
+  // Speaker notes
+  updateNotes(slides[n]);
+
+  // Build plugin grid when slide 15 is shown
+  if (n === 7) setTimeout(buildPluginGrid, 80);
+}
+
+function nextSlide() {
+  if (current < TOTAL - 1) { current++; showSlide(current); }
+}
+function prevSlide() {
+  if (current > 0) { current--; showSlide(current); }
+}
+function goTo(n) { current = n; showSlide(n); }
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') nextSlide();
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevSlide();
+  if (e.key === 'Escape') goTo(0);
+});
+
+// ── SPEAKER NOTES ──
+function updateNotes(slide) {
+  const notes = slide.dataset.notes || '';
+  const el = document.getElementById('speaker-notes');
+  if (notes) {
+    el.innerHTML = '<strong>🎤 SPEAKER NOTES:</strong> ' + notes;
+  } else {
+    el.innerHTML = '';
+  }
+}
+function toggleNotes() {
+  notesVisible = !notesVisible;
+  document.getElementById('speaker-notes').classList.toggle('visible', notesVisible);
+  document.getElementById('notes-toggle').style.borderColor = notesVisible ? 'var(--emerald)' : '';
+  document.getElementById('notes-toggle').style.color = notesVisible ? 'var(--emerald)' : '';
+}
+
+// ── FLOW DEMO ──
+let flowRunning = false;
+function runFlowDemo() {
+  if (flowRunning) return;
+  flowRunning = true;
+  const btn = document.getElementById('flow-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Running...';
+
+  const nodes = ['fn1','fn2','fn3','fn4','fn5'];
+  const packet = document.getElementById('txn-packet');
+  const status = document.getElementById('status-text');
+  const icon = document.getElementById('status-icon');
+  const flags = document.getElementById('flow-flags');
+  const flowRow = document.getElementById('flow-row');
+
+  // Reset
+  nodes.forEach(id => document.getElementById(id).classList.remove('active-node'));
+  packet.classList.remove('flagged','approved');
+  flags.innerHTML = '';
+
+  const steps = [
+    { node: 'fn1', left: '2%', icon: '📥', text: 'Invoice #2025-1842 received from ABC Contractors via email attachment.', flag: null },
+    { node: 'fn2', left: '22%', icon: '🤖', text: 'Codex extracting: Vendor, Amount ($14,500), Date, PO Reference, Tax code...', flag: null },
+    { node: 'fn3', left: '44%', icon: '🔍', text: 'Validating against PO #JPS-PO-0334. Amount exceeds PO by 12%. Rule triggered.', flag: { color: 'var(--gold)', text: '⚠ 12% over PO' } },
+    { node: 'fn4', left: '65%', icon: '⚠️', text: 'HUMAN REVIEW REQUIRED — Invoice flagged for your attention. Codex awaits your decision.', flag: { color: 'var(--red)', text: '🧑 Review needed' }, flagPacket: true },
+    { node: 'fn5', left: '84%', icon: '✅', text: 'Human approved. GL entry posted. Payment scheduled. Audit trail saved.', flag: { color: 'var(--emerald)', text: '✓ Approved' } }
+  ];
+
+  let i = 0;
+  function runStep() {
+    if (i >= steps.length) {
+      btn.disabled = false;
+      btn.textContent = '↩ Run Again';
+      flowRunning = false;
+      packet.classList.add('approved');
+      return;
+    }
+    const s = steps[i];
+    // Activate node
+    nodes.forEach(id => document.getElementById(id).classList.remove('active-node'));
+    document.getElementById(s.node).classList.add('active-node');
+
+    // Move packet
+    const rowRect = flowRow.getBoundingClientRect();
+    packet.style.left = s.left;
+    if (s.flagPacket) packet.classList.add('flagged');
+
+    // Update status
+    icon.textContent = s.icon;
+    status.textContent = s.text;
+
+    // Add flag badge
+    if (s.flag) {
+      const f = document.createElement('span');
+      f.style.cssText = `
+        background: rgba(0,0,0,.3);
+        border: 1px solid ${s.flag.color};
+        color: ${s.flag.color};
+        border-radius: 6px;
+        padding: .25rem .6rem;
+        font-size: .75rem;
+        font-family: 'JetBrains Mono', monospace;
+      `;
+      f.textContent = s.flag.text;
+      flags.appendChild(f);
+    }
+
+    i++;
+    setTimeout(runStep, 3200);
+  }
+  runStep();
+}
+
+// ── TAB SYSTEM (utility) ──
+function switchTab(tabGroupId, tabId) {
+  const group = document.getElementById(tabGroupId);
+  if (!group) return;
+  group.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  group.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === tabId));
+}
+
+// ── START ──
+init();
+
+// ══════════════════════════════════════════════
+// VOICE COMMAND ENGINE
+// ══════════════════════════════════════════════
+(function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    console.warn('Voice commands: SpeechRecognition not supported in this browser.');
+    return;
+  }
+
+  const recog = new SpeechRecognition();
+  recog.continuous = true;
+  recog.interimResults = false;
+  recog.lang = 'en-US';
+
+  let voiceOn = false;
+  let lastCmd = '';
+  let lastCmdTime = 0;
+
+  // shorthand jump
+  const jump = (n) => { current = n; showSlide(n); };
+
+  // New slide order:
+  // 0=s1 Hero, 1=s2 Agenda, 2=s3 What is Codex, 3=s4 Tools vs Specialists
+  // 4=s5 Demo, 5=s6 Apps section divider, 6=s7 How plugins work, 7=s8 Plugin explorer
+  // 8=s9 Efficiency charts, 9=s10 Audit, 10=s11 Variance, 11=s12 Billing
+  // 12=s13 Governance, 13=s14 Business planner, 14=s15 Closing, 15=s16 30-day roadmap
+
+  const COMMANDS = [
+    { phrases: ['next','next slide','forward','go forward','advance'],
+      action: () => nextSlide() },
+    { phrases: ['back','previous','go back','previous slide','last slide'],
+      action: () => prevSlide() },
+    { phrases: ['restart','first slide','go to start','beginning','go home'],
+      action: () => jump(0) },
+    { phrases: ['start demo','run demo','show demo','play demo','demo'],
+      action: () => { if (current !== 4) { jump(4); setTimeout(() => runFlowDemo(), 1000); } else runFlowDemo(); }},
+    { phrases: ['open codex','ask codex','show codex','open chat'],
+      action: () => openDrawer() },
+    { phrases: ['close codex','close chat','hide codex'],
+      action: () => closeDrawer() },
+
+    // ── numbered slides — longest phrases first to avoid partial matches ──
+    { phrases: ['slide sixteen','slide 16'],              action: () => jump(15) },
+    { phrases: ['slide fifteen','slide 15'],              action: () => jump(14) },
+    { phrases: ['slide fourteen','slide 14'],             action: () => jump(13) },
+    { phrases: ['slide thirteen','slide 13'],             action: () => jump(12) },
+    { phrases: ['slide twelve','slide 12','go to twelve'],action: () => jump(11) },
+    { phrases: ['slide eleven','slide 11','go to eleven'],action: () => jump(10) },
+    { phrases: ['slide ten','slide 10','go to ten'],      action: () => jump(9)  },
+    { phrases: ['slide nine','slide 9','go to nine'],     action: () => jump(8)  },
+    { phrases: ['slide eight','slide 8','go to eight'],   action: () => jump(7)  },
+    { phrases: ['slide seven','slide 7','go to seven'],   action: () => jump(6)  },
+    { phrases: ['slide six','slide 6','go to six'],       action: () => jump(5)  },
+    { phrases: ['slide five','slide 5','go to five'],     action: () => jump(4)  },
+    { phrases: ['slide four','slide 4','go to four'],     action: () => jump(3)  },
+    { phrases: ['slide three','slide 3','go to three'],   action: () => jump(2)  },
+    { phrases: ['slide two','slide 2','go to two'],       action: () => jump(1)  },
+    { phrases: ['slide one','slide 1','go to one'],       action: () => jump(0)  },
+
+    // ── named sections ──
+    { phrases: ['what is codex','big picture'],           action: () => jump(2)  },
+    { phrases: ['tools versus','tools vs','plugins versus agents'],
+                                                          action: () => jump(3)  },
+    { phrases: ['transaction demo','flow demo','live demo'],
+                                                          action: () => jump(4)  },
+    { phrases: ['apps and plugins','using apps','apps section','plugins section','section five'],
+                                                          action: () => jump(5)  },
+    { phrases: ['how plugins work','plugin bridge','plugin types'],
+                                                          action: () => jump(6)  },
+    { phrases: ['workflow builder','connected workflow','plugin explorer'],
+                                                          action: () => jump(7)  },
+    { phrases: ['efficiency','charts','time saved','hours saved'],
+                                                          action: () => jump(8)  },
+    { phrases: ['audit','audit readiness','audit slide'], action: () => jump(9)  },
+    { phrases: ['variance','budget variance'],            action: () => jump(10) },
+    { phrases: ['billing','billing follow','collections'],action: () => jump(11) },
+    { phrases: ['governance','human in the loop','human loop'],
+                                                          action: () => jump(12) },
+    { phrases: ['business planner','corporate planner','planning use case','scenario'],
+                                                          action: () => jump(13) },
+    { phrases: ['closing','wrap up','summary'],           action: () => jump(14) },
+    { phrases: ['roadmap','call to action','thirty day','30 day'],
+                                                          action: () => jump(15) },
+  ];
+
+  function matchCommand(transcript) {
+    const t = transcript.toLowerCase().trim();
+    const now = Date.now();
+    if (t === lastCmd && now - lastCmdTime < 2000) return;
+
+    // Use word-boundary matching so "one" doesn't fire inside "eleven"
+    function wordMatch(phrase, text) {
+      // Escape regex special chars then wrap in word boundaries
+      const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp('(?:^|\\s)' + escaped + '(?:\\s|$)').test(text);
+    }
+
+    // Sort commands: longer phrases checked first to avoid partial matches
+    const sorted = [...COMMANDS].sort((a, b) => {
+      const aMax = Math.max(...a.phrases.map(p => p.length));
+      const bMax = Math.max(...b.phrases.map(p => p.length));
+      return bMax - aMax;
+    });
+
+    for (const cmd of sorted) {
+      if (cmd.phrases.some(p => wordMatch(p, t))) {
+        lastCmd = t; lastCmdTime = now;
+        showVoiceFeedback(transcript);
+        cmd.action();
+        return;
+      }
+    }
+  }
+
+  recog.onresult = (e) => {
+    const transcript = e.results[e.results.length - 1][0].transcript;
+    matchCommand(transcript);
+  };
+  recog.onerror = (e) => {
+    if (e.error === 'no-speech') return;
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      voiceOn = false;
+      setVoiceOff();
+      showVoiceError('Microphone access denied. Click the 🔒 icon in your browser address bar and allow microphone, then try again.');
+    } else {
+      console.warn('Voice error:', e.error);
+    }
+  };
+  recog.onend = () => { if (voiceOn) { try { recog.start(); } catch(e){} } };
+
+  // ── HELPER: set button back to off state ──
+  function setVoiceOff() {
+    const dot = document.getElementById('voice-dot');
+    const b   = document.getElementById('voice-btn');
+    if (!b || !dot) return;
+    b.style.borderColor = 'var(--border)';
+    b.style.color       = 'var(--text-muted)';
+    b.style.background  = 'var(--surface2)';
+    dot.style.background  = 'var(--text-dim)';
+    dot.style.boxShadow   = 'none';
+    dot.style.animation   = 'none';
+    const hints = document.getElementById('voice-hints');
+    if (hints) hints.remove();
+  }
+
+  // ── HELPER: show error toast ──
+  function showVoiceError(msg) {
+    const old = document.getElementById('voice-error-toast');
+    if (old) old.remove();
+    const t = document.createElement('div');
+    t.id = 'voice-error-toast';
+    t.style.cssText = `
+      position:fixed;left:2rem;bottom:9.2rem;
+      background:rgba(10,21,23,.97);border:1px solid rgba(239,68,68,.6);
+      color:#fca5a5;font-size:.76rem;font-family:'DM Sans',sans-serif;
+      padding:.8rem 1.1rem;border-radius:12px;z-index:500;
+      max-width:280px;line-height:1.55;
+      box-shadow:0 4px 20px rgba(239,68,68,.2);
+      animation:msg-in .3s ease;
+    `;
+    t.innerHTML = `<strong style="color:#ef4444;font-family:'Syne',sans-serif;display:block;margin-bottom:.3rem">🎤 Mic Access Needed</strong>${msg}`;
+    const close = document.createElement('span');
+    close.textContent = '✕';
+    close.style.cssText = 'position:absolute;top:.5rem;right:.7rem;cursor:pointer;color:#ef4444;font-size:.85rem;';
+    close.onclick = () => t.remove();
+    t.style.position = 'fixed';
+    t.appendChild(close);
+    document.body.appendChild(t);
+    setTimeout(() => { if (t.parentNode) t.remove(); }, 9000);
+  }
+
+  // ── VOICE FEEDBACK TOAST ──
+  const feedback = document.createElement('div');
+  feedback.id = 'voice-feedback';
+  feedback.style.cssText = `
+    position:fixed;bottom:7.2rem;left:2rem;
+    background:rgba(10,21,23,.97);border:1px solid rgba(239,68,68,.4);
+    color:#ef4444;font-size:.75rem;font-family:'JetBrains Mono',monospace;
+    padding:.45rem 1rem;border-radius:20px;z-index:500;
+    opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;
+    max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  `;
+  document.body.appendChild(feedback);
+
+  function showVoiceFeedback(text) {
+    feedback.textContent = '🎤 "' + text.trim() + '"';
+    feedback.style.opacity = '1';
+    feedback.style.transform = 'translateY(0)';
+    clearTimeout(feedback._t);
+    feedback._t = setTimeout(() => {
+      feedback.style.opacity = '0';
+      feedback.style.transform = 'translateY(8px)';
+    }, 2400);
+  }
+
+  // ── HINTS PANEL ──
+  function showVoiceHints() {
+    const old = document.getElementById('voice-hints');
+    if (old) { old.remove(); return; }
+    const h = document.createElement('div');
+    h.id = 'voice-hints';
+    h.style.cssText = `
+      position:fixed;left:2rem;bottom:9.2rem;
+      background:rgba(10,21,23,.97);border:1px solid rgba(239,68,68,.3);
+      border-radius:12px;padding:.9rem 1.1rem;z-index:300;max-width:290px;
+      box-shadow:0 8px 32px rgba(0,0,0,.5);animation:msg-in .3s ease;
+    `;
+    h.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+        <p style="font-size:.66rem;font-family:'JetBrains Mono',monospace;color:#ef4444;letter-spacing:.12em;text-transform:uppercase">🎤 Voice Commands</p>
+        <span onclick="this.parentElement.parentElement.remove()" style="cursor:pointer;color:#4a706d;font-size:.9rem;line-height:1">✕</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.28rem .8rem;font-size:.73rem;color:#7a9e9b">
+        <div><strong style="color:#e2f0ee">"Next"</strong> advance</div>
+        <div><strong style="color:#e2f0ee">"Back"</strong> previous</div>
+        <div><strong style="color:#e2f0ee">"Start demo"</strong> slide 5</div>
+        <div><strong style="color:#e2f0ee">"Open Codex"</strong> chat</div>
+        <div><strong style="color:#e2f0ee">"Audit"</strong> jump</div>
+        <div><strong style="color:#e2f0ee">"Billing"</strong> jump</div>
+        <div><strong style="color:#e2f0ee">"Variance"</strong> jump</div>
+        <div><strong style="color:#e2f0ee">"Governance"</strong> jump</div>
+        <div><strong style="color:#e2f0ee">"Planner"</strong> jump</div>
+        <div><strong style="color:#e2f0ee">"Plugins"</strong> jump</div>
+        <div><strong style="color:#e2f0ee">"Roadmap"</strong> jump</div>
+        <div><strong style="color:#e2f0ee">"Slide 12"</strong> any #</div>
+      </div>
+      <p style="font-size:.64rem;color:#4a706d;margin-top:.6rem">Tap Voice button again to dismiss hints</p>
+    `;
+    document.body.appendChild(h);
+  }
+
+  // ── TOGGLE BUTTON ──
+  const btn = document.createElement('button');
+  btn.id = 'voice-btn';
+  btn.title = 'Toggle voice commands';
+  btn.style.cssText = `
+    position:fixed;left:2rem;bottom:5.8rem;z-index:200;
+    background:var(--surface2);border:1px solid var(--border);
+    border-radius:50px;padding:.55rem 1.1rem;
+    display:flex;align-items:center;gap:.5rem;
+    font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;
+    color:var(--text-muted);cursor:pointer;
+    transition:all .25s;box-shadow:0 2px 12px rgba(0,0,0,.3);
+  `;
+  btn.innerHTML = `<span id="voice-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:all .3s"></span><span>🎤 Voice</span>`;
+
+  let micPermission = 'unknown';
+  let liveStream    = null; // held open to prevent Chrome re-prompting
+
+  // Read permission state once on load
+  if (navigator.permissions) {
+    navigator.permissions.query({ name: 'microphone' }).then(s => {
+      micPermission = s.state;
+      s.onchange = () => { micPermission = s.state; };
+    }).catch(() => {});
+  }
+
+  btn.onclick = () => {
+    const dot = document.getElementById('voice-dot');
+    if (voiceOn) {
+      // ── TURN OFF ──
+      voiceOn = false;
+      try { recog.stop(); } catch(e) {}
+      // Release the held stream so mic indicator light goes off
+      if (liveStream) { liveStream.getTracks().forEach(t => t.stop()); liveStream = null; }
+      setVoiceOff();
+    } else {
+      // ── TURN ON ──
+      if (micPermission === 'granted' && liveStream) {
+        // Stream already open — start recognition directly, no prompt
+        activateVoice(dot);
+        return;
+      }
+      // Request mic once and KEEP the stream alive
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          liveStream    = stream;   // keep alive — prevents re-prompt on recog.start()
+          micPermission = 'granted';
+          activateVoice(dot);
+        })
+        .catch(err => {
+          micPermission = 'denied';
+          voiceOn = false;
+          setVoiceOff();
+          if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            showVoiceError('Microphone blocked. Click the 🔒 lock icon in your browser address bar → allow microphone → refresh, then try again.');
+          } else {
+            showVoiceError('Could not access microphone: ' + err.message);
+          }
+        });
+    }
+  };
+
+  function activateVoice(dot) {
+    voiceOn = true;
+    try { recog.start(); } catch(e) {}
+    const b = document.getElementById('voice-btn');
+    b.style.borderColor  = '#ef4444';
+    b.style.color        = '#ef4444';
+    b.style.background   = 'rgba(239,68,68,.1)';
+    dot.style.background = '#ef4444';
+    dot.style.boxShadow  = '0 0 8px rgba(239,68,68,.8)';
+    dot.style.animation  = 'blink 1s ease-in-out infinite';
+    showVoiceHints();
+  }
+  document.body.appendChild(btn);
+})();
+
+</script>
+
+<!-- ════════════════════════════════════════════════════
+     CODEX LIVE CONVERSATION PANEL
+     Floating side-drawer that can be opened on any slide.
+     Powered by claude-sonnet-4-20250514 via Anthropic API.
+════════════════════════════════════════════════════ -->
+<style>
+/* ── TRIGGER BUTTON ── */
+#codex-trigger {
+  position: fixed;
+  right: 2rem;
+  bottom: 6rem;
+  z-index: 200;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border: none;
+  border-radius: 50px;
+  padding: .65rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-family: 'Syne', sans-serif;
+  font-size: .8rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(124,58,237,.5), 0 4px 16px rgba(0,0,0,.4);
+  transition: all .25s cubic-bezier(.4,0,.2,1);
+  letter-spacing: .03em;
+}
+#codex-trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 36px rgba(124,58,237,.7), 0 6px 20px rgba(0,0,0,.4);
+}
+#codex-trigger .trigger-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #000;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+/* ── BACKDROP ── */
+#codex-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 300;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+  backdrop-filter: blur(4px);
+}
+#codex-backdrop.open { opacity: 1; pointer-events: all; }
+
+/* ── DRAWER ── */
+#codex-drawer {
+  position: fixed;
+  right: 0; top: 0; bottom: 0;
+  width: min(520px, 95vw);
+  background: #0a1517;
+  border-left: 1px solid #1e3a40;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .4s cubic-bezier(.4,0,.2,1);
+  box-shadow: -20px 0 60px rgba(0,0,0,.5);
+}
+#codex-drawer.open { transform: translateX(0); }
+
+/* DRAWER HEADER */
+.drawer-header {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid #1e3a40;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(124,58,237,.1), transparent);
+}
+.drawer-avatar {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #10b981, #06b6d4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  position: relative;
+}
+.avatar-status {
+  position: absolute;
+  bottom: -2px; right: -2px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #a78bfa;
+  border: 2px solid #0a1517;
+  animation: blink 2s infinite;
+}
+.drawer-title { flex: 1 }
+.drawer-title h4 {
+  font-family: 'Syne', sans-serif;
+  font-size: .95rem;
+  font-weight: 700;
+  color: #e2f0ee;
+  margin: 0 0 .1rem;
+}
+.drawer-title p {
+  font-size: .72rem;
+  color: #7a9e9b;
+  font-family: 'JetBrains Mono', monospace;
+}
+#drawer-close {
+  background: none; border: 1px solid #1e3a40;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  color: #7a9e9b; cursor: pointer;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+#drawer-close:hover { border-color: #10b981; color: #10b981; }
+
+/* QUICK PROMPTS HEADER */
+.quick-section {
+  padding: .8rem 1.2rem .5rem;
+  border-bottom: 1px solid #1e3a40;
+  flex-shrink: 0;
+}
+.quick-section p {
+  font-size: .7rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: #4a706d;
+  letter-spacing: .1em;
+  margin-bottom: .5rem;
+  text-transform: uppercase;
+}
+.quick-chips {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+.qchip {
+  background: #112228;
+  border: 1px solid #1e3a40;
+  border-radius: 20px;
+  padding: .3rem .8rem;
+  font-size: .75rem;
+  color: #7a9e9b;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+.qchip:hover {
+  border-color: #10b981;
+  color: #10b981;
+  background: rgba(16,185,129,.08);
+}
+
+/* DEPARTMENT CONTEXT SELECTOR */
+.ctx-section {
+  padding: .6rem 1.2rem;
+  border-bottom: 1px solid #1e3a40;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+.ctx-section label {
+  font-size: .7rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: #4a706d;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+#ctx-select {
+  flex: 1;
+  background: #112228;
+  border: 1px solid #1e3a40;
+  border-radius: 6px;
+  color: #e2f0ee;
+  font-size: .78rem;
+  padding: .3rem .6rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+#ctx-select:focus { outline: none; border-color: #10b981; }
+
+/* MESSAGES AREA */
+#codex-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  scrollbar-width: thin;
+  scrollbar-color: #1e3a40 transparent;
+}
+
+/* MESSAGE BUBBLES */
+.msg {
+  display: flex;
+  gap: .6rem;
+  animation: msg-in .3s cubic-bezier(.4,0,.2,1);
+}
+@keyframes msg-in {
+  from { opacity:0; transform: translateY(8px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.msg.user { flex-direction: row-reverse; }
+.msg-avatar {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.msg.ai .msg-avatar   { background: linear-gradient(135deg,#7c3aed,#6d28d9); }
+.msg.user .msg-avatar { background: #1e3a40; }
+.msg-bubble {
+  max-width: 84%;
+  padding: .7rem .9rem;
+  border-radius: 12px;
+  font-size: .83rem;
+  line-height: 1.65;
+}
+.msg.ai .msg-bubble {
+  background: #112228;
+  border: 1px solid #1e3a40;
+  border-top-left-radius: 4px;
+  color: #c8e0dc;
+}
+.msg.user .msg-bubble {
+  background: rgba(124,58,237,.12);
+  border: 1px solid rgba(124,58,237,.3);
+  border-top-right-radius: 4px;
+  color: #e2f0ee;
+}
+.msg-meta {
+  font-size: .65rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: #4a706d;
+  margin-top: .3rem;
+  display: block;
+}
+.msg.user .msg-meta { text-align: right; }
+
+/* TYPING INDICATOR */
+.typing-indicator {
+  display: flex; gap: 4px; align-items: center;
+  padding: .5rem .9rem;
+}
+.typing-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: typing-bounce .8s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: .15s; }
+.typing-dot:nth-child(3) { animation-delay: .3s; }
+@keyframes typing-bounce {
+  0%,80%,100% { transform: scale(.8); opacity:.4; }
+  40% { transform: scale(1.2); opacity:1; }
+}
+
+/* HIGHLIGHTED KEY TERMS */
+.msg-bubble strong { color: #10b981; }
+.msg-bubble em { color: #f59e0b; font-style: normal; }
+.msg-bubble code {
+  background: rgba(16,185,129,.1);
+  border: 1px solid rgba(16,185,129,.2);
+  border-radius: 3px;
+  padding: .1rem .3rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .75rem;
+  color: #06b6d4;
+}
+
+/* SUGGESTION CARDS inside AI messages */
+.suggestion-cards {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  margin-top: .6rem;
+}
+.scard {
+  background: rgba(16,185,129,.06);
+  border: 1px solid rgba(16,185,129,.2);
+  border-radius: 8px;
+  padding: .5rem .7rem;
+  font-size: .78rem;
+  cursor: pointer;
+  transition: all .2s;
+  color: #a0c4be;
+}
+.scard:hover { background: rgba(124,58,237,.15); color: #f0eeeb; border-color: #7c3aed; }
+.scard-icon { color: #10b981; margin-right: .3rem; }
+
+/* INPUT AREA */
+.drawer-input {
+  padding: .8rem 1.2rem 1.2rem;
+  border-top: 1px solid #1e3a40;
+  flex-shrink: 0;
+  background: #0a1517;
+}
+.input-row {
+  display: flex;
+  gap: .5rem;
+  align-items: flex-end;
+}
+#codex-input {
+  flex: 1;
+  background: #112228;
+  border: 1px solid #1e3a40;
+  border-radius: 10px;
+  color: #e2f0ee;
+  font-size: .85rem;
+  padding: .65rem .9rem;
+  font-family: 'DM Sans', sans-serif;
+  resize: none;
+  min-height: 42px;
+  max-height: 120px;
+  line-height: 1.5;
+  transition: border-color .2s;
+}
+#codex-input:focus { outline: none; border-color: #7c3aed; }
+#codex-input::placeholder { color: #4a706d; }
+#codex-send {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border: none;
+  border-radius: 10px;
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #000;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+#codex-send:hover { transform: scale(1.05); box-shadow: 0 0 16px rgba(16,185,129,.4); }
+#codex-send:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+.input-hint {
+  font-size: .68rem;
+  color: #4a706d;
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: .4rem;
+  text-align: center;
+}
+
+/* APPLY SUGGESTION TOAST */
+#apply-toast {
+  position: fixed;
+  bottom: 7rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #10b981;
+  color: #000;
+  font-size: .8rem;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  padding: .5rem 1.2rem;
+  border-radius: 20px;
+  z-index: 500;
+  opacity: 0;
+  transition: all .3s;
+  pointer-events: none;
+}
+#apply-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+
+<!-- TRIGGER BUTTON -->
+<button id="codex-trigger" onclick="openDrawer()">
+  <div class="trigger-dot"></div>
+  Ask Codex
+</button>
+
+<!-- BACKDROP -->
+<div id="codex-backdrop" onclick="closeDrawer()"></div>
+
+<!-- DRAWER -->
+<div id="codex-drawer">
+
+  <!-- Header -->
+  <div class="drawer-header">
+    <div class="drawer-avatar">
+      🤖
+      <div class="avatar-status"></div>
+    </div>
+    <div class="drawer-title">
+      <h4>Codex — Live Demo</h4>
+      <p>AI CO-PILOT · FINANCE & ACCOUNTING</p>
+    </div>
+    <button id="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+
+  <!-- Department Context -->
+  <div class="ctx-section">
+    <label>My Role:</label>
+    <select id="ctx-select">
+      <option value="FPA">FP&A / Planning</option>
+      <option value="billing">Billing Operations</option>
+      <option value="audit">Audit & Compliance</option>
+      <option value="accounts">Accounts Payable</option>
+      <option value="management">Finance Management</option>
+    </select>
+  </div>
+
+  <!-- Quick Prompt Chips -->
+  <div class="quick-section">
+    <p>Quick Questions</p>
+    <div class="quick-chips">
+      <div class="qchip" onclick="sendChip('How would Codex help with my monthly close process?')">📅 Monthly Close</div>
+      <div class="qchip" onclick="sendChip('Show me how Codex handles a budget variance spike')">📊 Variance Spike</div>
+      <div class="qchip" onclick="sendChip('What does Codex actually do vs what I still control?')">🛡 My Control</div>
+      <div class="qchip" onclick="sendChip('Walk me through a billing overdue account scenario')">💌 Overdue Account</div>
+      <div class="qchip" onclick="sendChip('How does Codex prepare for an external audit?')">📋 Audit Prep</div>
+      <div class="qchip" onclick="sendChip('Give me a realistic example of a task I do today that Codex could handle')">⚡ My Tasks</div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div id="codex-messages">
+    <!-- Welcome message injected by JS -->
+  </div>
+
+  <!-- Input -->
+  <div class="drawer-input">
+    <div class="input-row">
+      <textarea id="codex-input" placeholder="Ask Codex anything about your work…" rows="1"
+        onkeydown="handleInputKey(event)" oninput="autoResize(this)"></textarea>
+      <button id="codex-send" onclick="sendMessage()" title="Send">➤</button>
+    </div>
+    <p class="input-hint">↵ Send · Shift+↵ New line · Powered by Claude AI</p>
+  </div>
+</div>
+
+<div id="apply-toast">✓ Applied to presentation</div>
+
+<script>
+// ══════════════════════════════════════════════
+// PLUGIN EXPLORER — SLIDE 15
+// ══════════════════════════════════════════════
+
+const PLUGINS = [
+  { id:'erp',      icon:'🏗️',  label:'ERP / Oracle',    color:'cyan',    type:1,
+    step:'📊 Fetch live GL balances, invoice status, and budget actuals from your ERP',
+    prompts:['Pull the October actuals for the Operations cost centre','Show me all invoices over $50,000 posted this month','What is the current balance on account 4200?'] },
+  { id:'excel',    icon:'📊',  label:'Excel / Sheets',  color:'emerald', type:1,
+    step:'📋 Read and update your spreadsheets — pull data or write results back',
+    prompts:['Update the variance column in my budget tracker with the latest actuals','Format this data into a pivot table by department','Flag any cell in column D that exceeds 110% of budget'] },
+  { id:'email',    icon:'📧',  label:'Outlook / Gmail', color:'gold',    type:2,
+    step:'📧 Draft, schedule and send professional emails — you approve before sending',
+    prompts:['Draft a payment reminder for all accounts overdue more than 14 days','Send the budget variance report to the CFO with a one-paragraph summary','Check my inbox for any replies from ABC Contractors about Invoice #1842'] },
+  { id:'calendar', icon:'📅',  label:'Calendar',        color:'blue',    type:2,
+    step:'📅 Read your schedule and create events — with your confirmation',
+    prompts:['Schedule the monthly close review for next Tuesday at 10am','Check if the Finance team is available for a budget meeting this Friday','Add a reminder 3 days before every invoice due date this month'] },
+  { id:'teams',    icon:'💬',  label:'Teams / Slack',   color:'purple',  type:2,
+    step:'💬 Post summaries and alerts to your team channels — you control who sees what',
+    prompts:['Post the variance summary to the Finance channel','Alert the billing team when any account hits 30 days overdue','Send me a daily digest of unresolved AP items every morning at 8am'] },
+  { id:'pdf',      icon:'📄',  label:'PDF / Docs',      color:'emerald', type:1,
+    step:'📄 Read and extract data from invoices, contracts and PDF reports',
+    prompts:['Extract the total, vendor name and due date from this invoice PDF','Compare the terms in this contract against our standard payment schedule','Summarise the key findings from this audit report in 5 bullet points'] },
+  { id:'crm',      icon:'🤝',  label:'CRM / Harmony',   color:'cyan',    type:1,
+    step:'🤝 Access customer payment history and account notes from your CRM',
+    prompts:['Show me the full payment history for account #C-2048','Which customers have missed 2 or more payments in the last 6 months?','Flag any customer whose credit limit is within 10% of their current balance'] },
+  { id:'powerbi',  icon:'📈',  label:'Power BI',        color:'gold',    type:1,
+    step:'📈 Query your dashboards and pull live KPI data into the conversation',
+    prompts:['What does the current cash flow dashboard show for Q4?','Pull the top 5 overdue accounts from the AR aging report','Compare this month\'s collection rate against the 12-month average'] },
+  { id:'approvals',icon:'✅',  label:'Approvals / ERP', color:'purple',  type:2,
+    step:'✅ Trigger approval workflows — always requires your explicit sign-off',
+    prompts:['Submit Invoice #1842 for manager approval with a note about the PO variance','Escalate overdue account C-2048 to the credit committee for review','Route this journal entry to the Finance Controller for authorisation'] },
+];
+
+const selectedPlugins = new Set();
+
+const colorMap = {
+  cyan:   { bg:'rgba(6,182,212,.1)',    border:'rgba(6,182,212,.35)',   text:'#06b6d4'  },
+  emerald:{ bg:'rgba(16,185,129,.1)',   border:'rgba(16,185,129,.35)',  text:'#10b981'  },
+  gold:   { bg:'rgba(245,158,11,.1)',   border:'rgba(245,158,11,.35)',  text:'#f59e0b'  },
+  blue:   { bg:'rgba(59,130,246,.1)',   border:'rgba(59,130,246,.35)',  text:'#3b82f6'  },
+  purple: { bg:'rgba(139,92,246,.1)',   border:'rgba(139,92,246,.35)',  text:'#a78bfa'  },
+};
+
+function buildPluginGrid() {
+  const grid = document.getElementById('plugin-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  PLUGINS.forEach(p => {
+    const c = colorMap[p.color];
+    const btn = document.createElement('div');
+    btn.id = 'pbtn-' + p.id;
+    btn.style.cssText = `
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .6rem .5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      user-select: none;
+    `;
+    btn.innerHTML = `
+      <div style="font-size:1.3rem;margin-bottom:.25rem">${p.icon}</div>
+      <div style="font-size:.72rem;font-weight:600;color:var(--text-muted);line-height:1.2">${p.label}</div>
+      <div style="font-size:.62rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);margin-top:.2rem">${p.type===1?'read':'action'}</div>
+    `;
+    btn.onclick = () => togglePlugin(p.id);
+    grid.appendChild(btn);
+  });
+}
+
+function togglePlugin(id) {
+  const p = PLUGINS.find(x => x.id === id);
+  const btn = document.getElementById('pbtn-' + id);
+  const c = colorMap[p.color];
+  if (selectedPlugins.has(id)) {
+    selectedPlugins.delete(id);
+    btn.style.background = 'var(--surface)';
+    btn.style.borderColor = 'var(--border)';
+    btn.querySelector('div:first-child').style.filter = '';
+    const label = btn.querySelector('div:nth-child(2)');
+    label.style.color = 'var(--text-muted)';
+  } else {
+    selectedPlugins.add(id);
+    btn.style.background = c.bg;
+    btn.style.borderColor = c.border;
+    const label = btn.querySelector('div:nth-child(2)');
+    label.style.color = c.text;
+  }
+  renderWorkflow();
+}
+
+function clearPlugins() {
+  selectedPlugins.clear();
+  PLUGINS.forEach(p => {
+    const btn = document.getElementById('pbtn-' + p.id);
+    if (btn) {
+      btn.style.background = 'var(--surface)';
+      btn.style.borderColor = 'var(--border)';
+      const label = btn.querySelector('div:nth-child(2)');
+      if (label) label.style.color = 'var(--text-muted)';
+    }
+  });
+  renderWorkflow();
+}
+
+function renderWorkflow() {
+  const steps = document.getElementById('workflow-steps');
+  const empty = document.getElementById('workflow-empty');
+  const prompts = document.getElementById('prompt-examples');
+  if (!steps) return;
+
+  steps.innerHTML = '';
+
+  if (selectedPlugins.size === 0) {
+    empty.style.display = 'flex';
+    prompts.innerHTML = '<div class="highlight-box" style="padding:.55rem .85rem"><p style="font-size:.76rem;color:var(--text-muted)">Select tools above to see matching example prompts</p></div>';
+    return;
+  }
+
+  empty.style.display = 'none';
+
+  // Header node
+  const header = document.createElement('div');
+  header.style.cssText = `
+    background: var(--emerald-glow);
+    border: 1px solid rgba(139,92,246,.35);
+    border-radius: 8px;
+    padding: .5rem .8rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--emerald);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  `;
+  header.innerHTML = `<span>🤖</span> ChatGPT receives your prompt`;
+  steps.appendChild(header);
+
+  // Plugin steps
+  const selected = PLUGINS.filter(p => selectedPlugins.has(p.id));
+  selected.forEach((p, i) => {
+    const c = colorMap[p.color];
+
+    // Arrow
+    const arrow = document.createElement('div');
+    arrow.style.cssText = 'padding-left:1.2rem;color:var(--text-dim);font-size:.75rem';
+    arrow.textContent = '↓ calls plugin';
+    steps.appendChild(arrow);
+
+    const node = document.createElement('div');
+    node.style.cssText = `
+      background: ${c.bg};
+      border: 1px solid ${c.border};
+      border-radius: 8px;
+      padding: .5rem .8rem;
+      font-size: .76rem;
+      color: var(--text-muted);
+      animation: msg-in .3s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: .5rem;
+    `;
+    const typeBadge = p.type === 1
+      ? `<span style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:3px;padding:.05rem .35rem;font-size:.6rem;font-family:'JetBrains Mono',monospace;color:var(--emerald);white-space:nowrap;flex-shrink:0">read</span>`
+      : `<span style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:3px;padding:.05rem .35rem;font-size:.6rem;font-family:'JetBrains Mono',monospace;color:var(--gold);white-space:nowrap;flex-shrink:0">⚠ action</span>`;
+    node.innerHTML = `<span>${p.icon}</span><div><strong style="color:${c.text}">${p.label}</strong> ${typeBadge}<br><span style="font-size:.72rem">${p.step}</span></div>`;
+    steps.appendChild(node);
+  });
+
+  // Return arrow
+  const retArrow = document.createElement('div');
+  retArrow.style.cssText = 'padding-left:1.2rem;color:var(--text-dim);font-size:.75rem';
+  retArrow.textContent = '↓ results returned';
+  steps.appendChild(retArrow);
+
+  // Response node
+  const resp = document.createElement('div');
+  resp.style.cssText = `
+    background: rgba(16,185,129,.08);
+    border: 1px solid rgba(139,92,246,.35);
+    border-radius: 8px;
+    padding: .5rem .8rem;
+    font-size: .76rem;
+    font-weight: 600;
+    color: var(--emerald);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  `;
+  resp.innerHTML = `<span>✅</span> ChatGPT synthesises &amp; responds — you review &amp; act`;
+  steps.appendChild(resp);
+
+  // Prompts
+  const allPrompts = selected.flatMap(p => p.prompts);
+  const shown = allPrompts.slice(0, 3);
+  prompts.innerHTML = shown.map(q =>
+    `<div class="highlight-box" style="padding:.5rem .85rem;cursor:pointer;transition:all .2s"
+       onmouseover="this.style.borderColor='rgba(16,185,129,.5)'"
+       onmouseout="this.style.borderColor=''">
+       <p style="font-size:.76rem;color:var(--text-muted)"><span style="color:var(--emerald);font-family:'JetBrains Mono',monospace;font-size:.68rem">💬 TRY: </span>${q}</p>
+    </div>`
+  ).join('');
+}
+
+// Build grid when slide 15 becomes active — watch slide changes
+const _origShowSlide = typeof showSlide === 'function' ? showSlide : null;
+
+// ══════════════════════════════════════════════
+// CODEX CONVERSATION ENGINE
+// ══════════════════════════════════════════════
+
+const SYSTEM_PROMPT = `You are CODEX, an AI co-pilot demonstration assistant built for a Finance and Accounting department presentation. The audience includes FP&A Managers, Billing Operations staff, Audit & Compliance professionals, Accounts Payable clerks, and Finance Management.
+
+Your role in this live demo is to:
+1. Answer questions about how AI co-pilots (like yourself) can help with their specific finance tasks
+2. Give concrete, realistic examples using Jamaican/Caribbean business context (JPS - Jamaica Public Service, local compliance, JMD currency etc)
+3. Demonstrate actual task automation by walking through step-by-step what would happen
+4. Be honest about what AI does vs what humans must always control
+5. Suggest follow-up questions to deepen engagement
+
+PERSONA: Friendly, knowledgeable, professional. Never overpromise. Always emphasise human oversight. Use finance terminology naturally. Format responses with **bold** for key terms, line breaks for readability.
+
+RESPONSE STYLE:
+- Keep responses concise but meaty (3-6 sentences or structured steps)
+- Use emojis sparingly for visual breaks (1-2 max)
+- Always end responses that show a task demo with: "💬 Want me to walk through another step, or ask me about a different task you do?"
+- When someone mentions a specific task (like reconciliation, variance, invoice chase), immediately demonstrate what Codex would do for THAT specific task with realistic numbers/names
+- For FP&A: reference budget cycles, variance reports, forecasting
+- For Billing: reference invoice numbers, overdue accounts, collections letters
+- For Audit: reference evidence packs, GL testing, document trails
+- For Accounts Payable: reference PO matching, three-way match, payment runs
+
+IMPORTANT: You are being demonstrated LIVE in a presentation. Be engaging, specific, and make the audience feel like you understand their actual day-to-day work.`;
+
+let conversationHistory = [];
+let isLoading = false;
+
+// OPEN / CLOSE
+function openDrawer() {
+  document.getElementById('codex-drawer').classList.add('open');
+  document.getElementById('codex-backdrop').classList.add('open');
+  document.getElementById('codex-input').focus();
+  if (conversationHistory.length === 0) showWelcome();
+}
+function closeDrawer() {
+  document.getElementById('codex-drawer').classList.remove('open');
+  document.getElementById('codex-backdrop').classList.remove('open');
+}
+
+// WELCOME MESSAGE
+function showWelcome() {
+  const role = document.getElementById('ctx-select').value;
+  const roleLabels = {
+    FPA: 'FP&A / Planning', billing: 'Billing Operations',
+    audit: 'Audit & Compliance', accounts: 'Accounts Payable',
+    management: 'Finance Management'
+  };
+  const welcomeHtml = `
+    Hello! I'm <strong>Codex</strong> — your AI co-pilot for the Finance department. 👋<br><br>
+    I see you're in <strong>${roleLabels[role]}</strong>. I can:<br>
+    • Walk through how I'd handle <strong>your specific tasks</strong><br>
+    • Show you exactly <em>what I do vs what you keep control of</em><br>
+    • Answer any question about AI in Finance<br><br>
+    <strong>Try asking me about a task you did this week</strong> — I'll show you how I'd assist.
+  `;
+  appendMessage('ai', welcomeHtml);
+}
+
+// SEND MESSAGE
+async function sendMessage(overrideText) {
+  if (isLoading) return;
+  const input = document.getElementById('codex-input');
+  const text = (overrideText || input.value).trim();
+  if (!text) return;
+
+  const role = document.getElementById('ctx-select').value;
+  const roleLabels = {
+    FPA: 'FP&A Manager', billing: 'Billing Operations Officer',
+    audit: 'Audit & Compliance Analyst', accounts: 'Accounts Payable Clerk',
+    management: 'Finance Manager'
+  };
+
+  if (!overrideText) input.value = '';
+  autoResize(input);
+
+  appendMessage('user', text);
+  conversationHistory.push({ role: 'user', content: text });
+
+  showTyping();
+  isLoading = true;
+  document.getElementById('codex-send').disabled = true;
+
+  try {
+    const contextNote = `[User context: ${roleLabels[role]}, slide ${current + 1} of 12 currently displayed]`;
+    const messagesWithCtx = [
+      { role: 'user', content: contextNote + '\n\n' + conversationHistory[0].content },
+      ...conversationHistory.slice(1)
+    ];
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': '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', // ← REPLACE THIS WITH YOUR KEY: sk-ant-api03-...
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-request-browser': 'true'
+        },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: messagesWithCtx
+      })
+    });
+
+    const data = await res.json();
+    removeTyping();
+
+    if (data.content && data.content[0]) {
+      const reply = data.content[0].text;
+      conversationHistory.push({ role: 'assistant', content: reply });
+      // Convert markdown-like to HTML
+      const html = markdownToHtml(reply);
+      appendMessage('ai', html, true);
+    } else {
+      appendMessage('ai', 'I encountered an issue. Please try again.', false);
+    }
+  } catch (err) {
+    removeTyping();
+    appendMessage('ai', `<strong style="color:var(--red)">Connection error.</strong> Make sure the API is accessible and try again.`);
+  }
+
+  isLoading = false;
+  document.getElementById('codex-send').disabled = false;
+}
+
+function sendChip(text) {
+  sendMessage(text);
+}
+
+// MARKDOWN → HTML (lightweight)
+function markdownToHtml(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code>$1</code>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n•/g, '<br>•')
+    .replace(/\n-/g, '<br>-')
+    .replace(/\n\d\./g, (m) => '<br>' + m.trim())
+    .replace(/\n/g, '<br>');
+}
+
+// APPEND MESSAGE
+function appendMessage(role, html, withSuggestions) {
+  const msgs = document.getElementById('codex-messages');
+  const msg = document.createElement('div');
+  msg.className = `msg ${role}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = role === 'ai' ? '🤖' : '🧑';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = html;
+
+  // Add follow-up suggestion cards for AI messages
+  if (role === 'ai' && withSuggestions) {
+    const currentRole = document.getElementById('ctx-select').value;
+    const suggestions = getRoleSuggestions(currentRole);
+    if (suggestions.length && Math.random() > 0.4) {
+      const cards = document.createElement('div');
+      cards.className = 'suggestion-cards';
+      cards.innerHTML = suggestions.slice(0,2).map(s =>
+        `<div class="scard" onclick="sendMessage('${s.q.replace(/'/g,"\\'")}')">
+          <span class="scard-icon">${s.icon}</span>${s.label}
+        </div>`
+      ).join('');
+      bubble.appendChild(cards);
+    }
+  }
+
+  const meta = document.createElement('span');
+  meta.className = 'msg-meta';
+  const now = new Date();
+  meta.textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} · ${role === 'ai' ? 'Codex AI' : 'You'}`;
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;max-width:84%';
+  wrap.appendChild(bubble);
+  wrap.appendChild(meta);
+
+  if (role === 'ai') {
+    msg.appendChild(avatar);
+    msg.appendChild(wrap);
+  } else {
+    msg.appendChild(wrap);
+    msg.appendChild(avatar);
+  }
+
+  msgs.appendChild(msg);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// TYPING INDICATOR
+function showTyping() {
+  const msgs = document.getElementById('codex-messages');
+  const t = document.createElement('div');
+  t.className = 'msg ai';
+  t.id = 'typing-msg';
+  t.innerHTML = `
+    <div class="msg-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">🤖</div>
+    <div class="msg-bubble" style="background:#112228;border:1px solid #1e3a40">
+      <div class="typing-indicator">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>`;
+  msgs.appendChild(t);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function removeTyping() {
+  const t = document.getElementById('typing-msg');
+  if (t) t.remove();
+}
+
+// ROLE-BASED FOLLOW-UP SUGGESTIONS
+function getRoleSuggestions(role) {
+  const map = {
+    FPA: [
+      { icon:'📊', label:'Variance explanation draft', q:'Draft a narrative for a 15% overspend in Operations' },
+      { icon:'📈', label:'Forecast automation', q:'How would Codex help build the Q1 forecast?' },
+      { icon:'📋', label:'Board report prep', q:'How does Codex prepare the monthly board pack?' }
+    ],
+    billing: [
+      { icon:'💌', label:'Overdue account scenario', q:'Account #2048 is 30 days overdue for $85,000. What does Codex do?' },
+      { icon:'📧', label:'Collections email draft', q:'Draft a Day 7 collections notice for a J$1.2M overdue account' },
+      { icon:'📊', label:'Aging report', q:'How does Codex generate the AR aging report?' }
+    ],
+    audit: [
+      { icon:'📂', label:'Evidence pack builder', q:'Walk me through building an audit evidence pack for Q3' },
+      { icon:'🔍', label:'GL testing scenario', q:'How would Codex sample and test 50 GL entries for audit?' },
+      { icon:'⚠️', label:'Control gap detection', q:'How does Codex flag a missing approval in the audit trail?' }
+    ],
+    accounts: [
+      { icon:'🧾', label:'Three-way match', q:'Walk me through a three-way match failure scenario' },
+      { icon:'💳', label:'Payment run prep', q:'How does Codex prepare the weekly payment run?' },
+      { icon:'🔄', label:'Supplier reconciliation', q:'How would Codex reconcile the supplier statement for ABC Ltd?' }
+    ],
+    management: [
+      { icon:'📈', label:'KPI dashboard brief', q:'What KPIs should Codex track automatically for the Finance dashboard?' },
+      { icon:'🛡', label:'Governance overview', q:'Explain the approval hierarchy Codex follows in our department' },
+      { icon:'💡', label:'ROI estimate', q:'Estimate the ROI of deploying Codex across our Finance team' }
+    ]
+  };
+  return map[role] || map.FPA;
+}
+
+// INPUT HANDLING
+function handleInputKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// Re-show welcome if role changes and chat is empty
+document.getElementById('ctx-select').addEventListener('change', () => {
+  if (conversationHistory.length === 0) {
+    document.getElementById('codex-messages').innerHTML = '';
+    showWelcome();
+  }
+});
+</script>
+</body>
+</html>
